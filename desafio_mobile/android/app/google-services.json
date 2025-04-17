@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "202473710199",
+    "project_id": "acompanhamentoalunosespeciais",
+    "storage_bucket": "acompanhamentoalunosespeciais.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:202473710199:android:b08b954fcc821e6c791c72",
+        "android_client_info": {
+          "package_name": "com.example.desafio_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "202473710199-jjbb64a8aq70g4t0svaj7ngvpavpnoef.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.desafio_mobile",
+            "certificate_hash": "8103afd4769588cb64036d20f57ececdaf3df776"
+          }
+        },
+        {
+          "client_id": "202473710199-l7el9obmjk0c4a478emm8q36i6dcu6g3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBg8P9pkjhV5RNyHGeUIEzSooIY56iwcLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "202473710199-l7el9obmjk0c4a478emm8q36i6dcu6g3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "202473710199-57rcn1oaejfrfvjtqn4s244u5fp84kih.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.desafioMobile"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
