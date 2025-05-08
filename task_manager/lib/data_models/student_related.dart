@@ -1,7 +1,7 @@
 // student_related.dart
 
-import 'package:desafio_mobile/data_models/conditions.dart';
-import 'package:desafio_mobile/data_models/school_related.dart';
+import 'package:task_manager/data_models/conditions.dart';
+import 'package:task_manager/data_models/school_related.dart';
 
 // Aluno Especial Model
 class AlunoEspecial {
