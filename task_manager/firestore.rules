@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User document rules
+    match /users/{userId} {
+      // Allow users to read and write their own documents
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // User profile rules
+    match /userProfiles/{userId} {
+      // Allow users to read and write their own profile
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Allow other users to read profile data (for display purposes)
+      allow read: if request.auth != null;
+    }
+    
+    // Username uniqueness validation
+    match /usernames/{username} {
+      allow read: if request.auth != null;
+      // Only allow creation if the username doesn't exist yet
+      allow create: if request.auth != null && 
+                    request.auth.uid == request.resource.data.userId &&
+                    !exists(/databases/$(database)/documents/usernames/$(username));
+      // Only allow the owner to update or delete their username
+      allow update, delete: if request.auth != null && 
+                            request.auth.uid == resource.data.userId;
+    }
+    
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

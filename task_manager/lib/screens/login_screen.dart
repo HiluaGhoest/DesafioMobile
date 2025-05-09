@@ -5,6 +5,8 @@ import 'package:flutter/gestures.dart';
 import 'package:task_manager/util/theme_provider.dart';
 import 'dart:ui';
 import 'package:task_manager/screens/main_app_page.dart';
+import 'package:task_manager/widgets/signup_modal.dart';
+import 'package:flutter/foundation.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -39,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Logo
                 Container(
                   decoration: BoxDecoration(
-                    color: ThemeProvider.primaryButton.withOpacity(0.3),
+                    color: ThemeProvider.primaryButton.withAlpha((0.3 * 255).toInt()),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   padding: const EdgeInsets.all(24),
@@ -55,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 340,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                   decoration: ThemeProvider.cardDecoration(context).copyWith(
-                    color: Colors.white.withOpacity(0.7), // Less transparent
+                    color: Colors.white.withAlpha((0.7 * 255).toInt()), // Less transparent
                     backgroundBlendMode: BlendMode.overlay,
                   ),
                   child: ClipRRect(
@@ -94,19 +96,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                         setState(() {
                                           _loginError = null;
                                         });
+                                        final currentContext = context;
                                         try {
-                                          final success = await context.read<AuthProvider>().signInWithGoogle();
-                                          if (success && mounted) {
-                                            print('Google sign-in successful');
-                                            Navigator.of(context).pushReplacement(
+                                          final success = await currentContext.read<AuthProvider>().signInWithGoogle();
+                                          if (mounted && success) {
+                                            if (kDebugMode) {
+                                              print('Google sign-in successful');
+                                            }
+                                            // ignore: use_build_context_synchronously
+                                            Navigator.of(currentContext).pushReplacement(
                                               MaterialPageRoute(builder: (_) => MainAppPage()),
                                             );
                                           }
                                         } catch (e) {
-                                          print('Google sign-in failed: $e');
-                                          setState(() {
-                                            _loginError = 'Google sign-in failed: ${e.toString()}';
-                                          });
+                                          if (kDebugMode) {
+                                            print('Google sign-in failed: $e');
+                                          }
+                                          if (mounted) {
+                                            setState(() {
+                                              _loginError = 'Google sign-in failed: ${e.toString()}';
+                                            });
+                                          }
                                         }
                                       },
                                 icon: Image.asset(
@@ -211,7 +221,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     try {
                                       await context.read<AuthProvider>().sendPasswordResetEmail(email);
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        final currentContext = context;
+                                        // ignore: use_build_context_synchronously
+                                        ScaffoldMessenger.of(currentContext).showSnackBar(
                                           const SnackBar(content: Text('Password reset email sent!')),
                                         );
                                       }
@@ -224,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: Text(
                                     'Forgot password?',
                                     style: TextStyle(
-                                      color: ThemeProvider.forgotPassword,
+                                      color: ThemeProvider.lightRed,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -255,13 +267,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                   try {
                                     final success = await context.read<AuthProvider>().signInWithEmail(email, password);
                                     if (success && mounted) {
-                                      print('Login successful');
+                                      if (kDebugMode) {
+                                        print('Login successful');
+                                      }
+                                      // ignore: use_build_context_synchronously
                                       Navigator.of(context).pushReplacement(
                                         MaterialPageRoute(builder: (_) => MainAppPage()),
                                       );
                                     }
                                   } catch (e) {
-                                    print('Login failed: $e');
+                                    if (kDebugMode) {
+                                      print('Login failed: $e');
+                                    }
                                     setState(() {
                                       _loginError = 'Login failed: credentials are incorrect or user does not exist, please sign up first';
                                     });
@@ -291,13 +308,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   text: TextSpan(
                     text: "Don't have an account? ",
                     style: Theme.of(context).textTheme.bodyMedium,
-                    children: [
-                      TextSpan(
+                    children: [                      TextSpan(
                         text: 'Sign up',
                         style: TextStyle(color: ThemeProvider.signUpGreen, fontWeight: FontWeight.w600),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            // Handle sign up navigation
+                            // Show the sign up modal
+                            showDialog(
+                              context: context,
+                              builder: (_) => SignUpModal(),
+                              barrierDismissible: false,
+                            );
                           },
                       ),
                     ],

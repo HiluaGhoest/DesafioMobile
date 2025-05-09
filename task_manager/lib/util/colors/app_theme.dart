@@ -11,7 +11,6 @@ class AppTheme {
         primary: Color(0xFF0A73FF),
         secondary: Color(0xFF4FC3F7),
         tertiary: Color(0xFFFFC107),
-        background: Color(0xFFF5F5F5),
         surface: Color(0xFFFFFFFF),
         error: Color(0xFFB00020),
         secondaryContainer: Color(0xFF4CAF50), // success
@@ -33,7 +32,6 @@ class AppTheme {
         primary: Color(0xFF0A73FF),
         secondary: Color(0xFF4FC3F7),
         tertiary: Color(0xFFFFC107),
-        background: Color(0xFF121212),
         surface: Color(0xFF1E1E1E),
         error: Color(0xFFCF6679),
         secondaryContainer: Color(0xFF81C784), // success (lighter green)
