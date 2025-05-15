@@ -1,0 +1,127 @@
+{
+  "@@locale": "en",
+  "appTitle": "Task Manager",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "loginTitle": "Login",
+  "@loginTitle": {
+    "description": "Title for the login page"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Label for email field"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Label for password field"
+  },
+  "rememberMe": "Remember me",
+  "@rememberMe": {
+    "description": "Label for remember me checkbox"
+  },
+  "login": "Login",
+  "@login": {
+    "description": "Text for login button"
+  },
+  "signInWithGoogle": "Sign in with Google",
+  "@signInWithGoogle": {
+    "description": "Text for Google sign-in button"
+  },
+  "dontHaveAccount": "Don't have an account?",
+  "@dontHaveAccount": {
+    "description": "Text for users without an account"
+  },
+  "signUp": "Sign up",
+  "@signUp": {
+    "description": "Text for sign up button/link"
+  },
+  "tasks": "Tasks",
+  "@tasks": {
+    "description": "Label for tasks tab"
+  },
+  "activities": "Activities",
+  "@activities": {
+    "description": "Label for activities tab"
+  },
+  "statistics": "Statistics",
+  "@statistics": {
+    "description": "Label for statistics tab"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Label for profile tab"
+  },
+  "addTask": "Add Task",
+  "@addTask": {
+    "description": "Button text to add a new task"
+  },
+  "editTask": "Edit Task",
+  "@editTask": {
+    "description": "Title for editing a task"
+  },
+  "deleteTask": "Delete Task",
+  "@deleteTask": {
+    "description": "Button text to delete a task"
+  },
+  "confirmDeleteTask": "Are you sure you want to delete this task?",
+  "@confirmDeleteTask": {
+    "description": "Confirmation message for task deletion"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Button text for cancel action"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Button text for save action"
+  },
+  "taskName": "Task name",
+  "@taskName": {
+    "description": "Label for task name field"
+  },
+  "description": "Description",
+  "@description": {
+    "description": "Label for description field"
+  },
+  "date": "Date",
+  "@date": {
+    "description": "Label for date field"
+  },
+  "time": "Time",
+  "@time": {
+    "description": "Label for time field"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Title for settings page"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Label for language setting"
+  },
+  "english": "English",
+  "@english": {
+    "description": "Name of English language"
+  },
+  "portuguese": "Portuguese",
+  "@portuguese": {
+    "description": "Name of Portuguese language"
+  },
+  "spanish": "Spanish",
+  "@spanish": {
+    "description": "Name of Spanish language"
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Button text for logout action"
+  },
+  "completed": "Completed",
+  "@completed": {
+    "description": "Label for completed status"
+  },
+  "pending": "Pending",
+  "@pending": {
+    "description": "Label for pending status"
+  }
+}

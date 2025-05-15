@@ -15,6 +15,12 @@
         {
           "fieldPath": "time.minute",
           "order": "ASCENDING"
+        },
+        { 
+          "fieldPath": "isCompleted", "order": "ASCENDING"
+        },
+        { 
+          "fieldPath": "__name__", "order": "ASCENDING" 
         }
       ]
     },

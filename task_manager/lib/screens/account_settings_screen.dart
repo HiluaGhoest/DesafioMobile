@@ -6,6 +6,7 @@ import 'package:task_manager/authentication/auth_service.dart' as app_auth;
 import 'package:task_manager/screens/change_password_screen.dart';
 import 'package:task_manager/screens/edit_profile_screen.dart';
 import 'package:task_manager/screens/login_screen.dart';
+import 'package:task_manager/screens/settings_screen.dart';
 import 'package:task_manager/services/user_profile_service.dart';
 import 'package:flutter/foundation.dart';
 
@@ -550,6 +551,39 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                                 if (result == true) {
                                                   _loadUserProfile();
                                                 }
+                                              },
+                                            ),
+                                              const Divider(height: 1, indent: 16, endIndent: 16),
+                                            
+                                            // Language Settings
+                                            ListTile(
+                                              leading: Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue.withAlpha((0.1 * 255).toInt()),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.language,
+                                                  color: Colors.blue,
+                                                ),
+                                              ),
+                                              title: const Text(
+                                                'Language Settings',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              trailing: const Icon(
+                                                Icons.chevron_right,
+                                                color: Colors.grey,
+                                              ),
+                                              onTap: () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => const SettingsScreen(),
+                                                  ),
+                                                );
                                               },
                                             ),
                                             

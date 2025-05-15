@@ -2,12 +2,15 @@ import 'package:task_manager/authentication/auth_service.dart' as app_auth;
 import 'package:task_manager/screens/login_screen.dart';
 import 'package:task_manager/screens/main_app_page.dart';
 import 'package:task_manager/util/colors/app_theme.dart';
+import 'package:task_manager/util/language_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -33,6 +36,10 @@ void main() async {
   
   // Initialize Firebase Analytics
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+    // Create language provider
+  final languageProvider = LanguageProvider();
+  // Initialize language preferences
+  await languageProvider.init();
   
   runApp(
     MultiProvider(
@@ -42,6 +49,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => app_auth.AuthProvider(context.read<app_auth.AuthService>()),
         ),
+        ChangeNotifierProvider.value(value: languageProvider),
       ],
       child: const MainApp(),
     ),
@@ -59,7 +67,7 @@ class MainApp extends StatelessWidget {
 }
 
 class _MainAppWithProviders extends StatelessWidget {
-  const _MainAppWithProviders({super.key});
+  const _MainAppWithProviders();
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +75,8 @@ class _MainAppWithProviders extends StatelessWidget {
     final analytics = Provider.of<FirebaseAnalytics>(context, listen: false);
     // Create analytics observer for route tracking
     final observer = FirebaseAnalyticsObserver(analytics: analytics);
+    // Get language provider
+    final languageProvider = Provider.of<LanguageProvider>(context);
 
     return MaterialApp(
       title: 'Task Manager',
@@ -74,6 +84,16 @@ class _MainAppWithProviders extends StatelessWidget {
       // Add analytics observer
       navigatorObservers: [observer],
       debugShowCheckedModeBanner: false,
+        // Add localization support
+      locale: languageProvider.locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: LanguageProvider.supportedLocales,
+      
       home: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
