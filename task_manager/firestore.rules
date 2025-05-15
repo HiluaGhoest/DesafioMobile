@@ -14,17 +14,60 @@ service cloud.firestore {
       // Allow other users to read profile data (for display purposes)
       allow read: if request.auth != null;
     }
-    
-    // Username uniqueness validation
+      // Username uniqueness validation
     match /usernames/{username} {
       allow read: if request.auth != null;
       // Only allow creation if the username doesn't exist yet
+    }    // Task rules - nested under users collection
+    match /users/{userId}/tasks/{taskId} {
+      // Allow users to read and write their own tasks only
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Data validation for tasks
+      function isValidTask() {
+        return request.resource.data.name is string &&
+               request.resource.data.name.size() > 0 &&
+               request.resource.data.date is timestamp &&
+               request.resource.data.time is map &&
+               request.resource.data.time.hour is number &&
+               request.resource.data.time.minute is number;
+      }
+      
+      // Allow creating valid tasks
       allow create: if request.auth != null && 
-                    request.auth.uid == request.resource.data.userId &&
-                    !exists(/databases/$(database)/documents/usernames/$(username));
-      // Only allow the owner to update or delete their username
-      allow update, delete: if request.auth != null && 
-                            request.auth.uid == resource.data.userId;
+                     request.auth.uid == userId &&
+                     isValidTask();
+                       // Allow updating valid tasks
+      allow update: if request.auth != null && 
+                     request.auth.uid == userId &&
+                     isValidTask();
+    }
+    
+    // Activity rules - nested under users collection
+    match /users/{userId}/activities/{activityId} {
+      // Allow users to read and write their own activities only
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Data validation for activities
+      function isValidActivity() {
+        return request.resource.data.name is string &&
+               request.resource.data.name.size() > 0 &&
+               request.resource.data.startDate is timestamp &&
+               request.resource.data.time is map &&
+               request.resource.data.time.hour is number &&
+               request.resource.data.time.minute is number &&
+               request.resource.data.recurrenceType is string;
+      }
+      
+      // Allow creating valid activities
+      allow create: if request.auth != null && 
+                    request.auth.uid == userId &&
+                    isValidActivity();
+                     
+      // Allow updating valid activities
+      allow update: if request.auth != null && 
+                    request.auth.uid == userId &&
+                    isValidActivity();
     }
     
     // Default deny all other access
