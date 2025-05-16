@@ -1,7 +1,7 @@
 import 'package:task_manager/authentication/auth_service.dart' as app_auth;
 import 'package:task_manager/screens/login_screen.dart';
 import 'package:task_manager/screens/main_app_page.dart';
-import 'package:task_manager/util/colors/app_theme.dart';
+import 'package:task_manager/util/theme_provider.dart';
 import 'package:task_manager/util/language_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -36,8 +37,14 @@ void main() async {
   
   // Initialize Firebase Analytics
   final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-    // Create language provider
+  
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+  
+  // Create providers
   final languageProvider = LanguageProvider();
+  final themeProvider = ThemeProvider(prefs);
+  
   // Initialize language preferences
   await languageProvider.init();
   
@@ -50,6 +57,7 @@ void main() async {
           create: (context) => app_auth.AuthProvider(context.read<app_auth.AuthService>()),
         ),
         ChangeNotifierProvider.value(value: languageProvider),
+        ChangeNotifierProvider.value(value: themeProvider),
       ],
       child: const MainApp(),
     ),
@@ -75,16 +83,18 @@ class _MainAppWithProviders extends StatelessWidget {
     final analytics = Provider.of<FirebaseAnalytics>(context, listen: false);
     // Create analytics observer for route tracking
     final observer = FirebaseAnalyticsObserver(analytics: analytics);
-    // Get language provider
+    // Get providers
     final languageProvider = Provider.of<LanguageProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
       title: 'Task Manager',
-      theme: AppTheme.lightTheme,
-      // Add analytics observer
+      theme: themeProvider.theme,
+      themeAnimationDuration: Duration.zero, // Disable theme transition animation
+      themeAnimationCurve: Curves.linear,
       navigatorObservers: [observer],
       debugShowCheckedModeBanner: false,
-        // Add localization support
+      // Add localization support
       locale: languageProvider.locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,

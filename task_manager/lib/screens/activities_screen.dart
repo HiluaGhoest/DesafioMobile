@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager/data_models/activity.dart';
 import 'package:task_manager/services/activity_service.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 import 'package:task_manager/util/theme_provider.dart';
 import 'package:task_manager/widgets/activity_dialog.dart';
 import 'package:task_manager/widgets/activity_card.dart';
 import 'package:task_manager/screens/statistics_screen.dart';
+import 'package:provider/provider.dart';
 
 class ActivitiesScreen extends StatefulWidget {
   const ActivitiesScreen({Key? key}) : super(key: key);
@@ -139,7 +141,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
                   icon: const Icon(Icons.add),
                   label: const Text('Add New Activity'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeProvider.primaryButton,
+                    backgroundColor: AppColors.primary(context),
                     foregroundColor: Colors.white,
                   ),
                 ),
@@ -169,15 +171,16 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background(context),
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Activities',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: ThemeProvider.primaryButton,
+        backgroundColor: AppColors.primary(context),
         foregroundColor: Colors.white,
         actions: [
           // Add a button to view statistics
@@ -194,23 +197,23 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: ThemeProvider.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: Provider.of<ThemeProvider>(context).backgroundGradient,
         ),
         child: Column(
           children: [
             // Tabs for filtering activities
             Container(
-              color: Colors.white.withOpacity(0.7),
+              color: AppColors.background(context),
               child: TabBar(
                 controller: _tabController,
                 tabs: const [
                   Tab(text: 'All Activities'),
                   Tab(text: 'Active Only'),
                 ],
-                labelColor: ThemeProvider.primaryButton,
+                labelColor: AppColors.primary(context),
                 unselectedLabelColor: Colors.grey[600],
-                indicatorColor: ThemeProvider.primaryButton,
+                indicatorColor: AppColors.primary(context),
               ),
             ),
             
@@ -231,7 +234,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddActivityDialog,
-        backgroundColor: ThemeProvider.primaryButton,
+        backgroundColor: AppColors.primary(context),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );

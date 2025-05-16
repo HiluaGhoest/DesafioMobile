@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_manager/authentication/auth_service.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 import 'package:task_manager/util/theme_provider.dart';
 import 'package:task_manager/screens/main_app_page.dart';
 
@@ -132,7 +133,7 @@ class _SignUpModalState extends State<SignUpModal> {
                     hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.6 * 255).toInt())),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: ThemeProvider.primaryButton, width: 2),
+                      borderSide: BorderSide(color: AppColors.primary(context), width: 2),
                     ),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -161,7 +162,7 @@ class _SignUpModalState extends State<SignUpModal> {
                     ),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: ThemeProvider.primaryButton, width: 2),
+                      borderSide: BorderSide(color: AppColors.primary(context), width: 2),
                     ),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -192,7 +193,7 @@ class _SignUpModalState extends State<SignUpModal> {
                     hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.6 * 255).toInt())),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: ThemeProvider.primaryButton, width: 2),
+                      borderSide: BorderSide(color: AppColors.primary(context), width: 2),
                     ),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -222,7 +223,7 @@ class _SignUpModalState extends State<SignUpModal> {
                     hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.6 * 255).toInt())),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: ThemeProvider.primaryButton, width: 2),
+                      borderSide: BorderSide(color: AppColors.primary(context), width: 2),
                     ),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -258,7 +259,7 @@ class _SignUpModalState extends State<SignUpModal> {
                     hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.6 * 255).toInt())),
                     border: OutlineInputBorder(),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: ThemeProvider.primaryButton, width: 2),
+                      borderSide: BorderSide(color: AppColors.primary(context), width: 2),
                     ),
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -300,7 +301,7 @@ class _SignUpModalState extends State<SignUpModal> {
                             child: Row(
                               children: [                                Icon(
                                   requirement.isMet ? Icons.check_circle : Icons.cancel,
-                                  color: requirement.isMet ? ThemeProvider.signUpGreen : Theme.of(context).colorScheme.error,
+                                  color: requirement.isMet ? AppColors.primary(context) : Theme.of(context).colorScheme.error,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 8),
@@ -321,7 +322,7 @@ class _SignUpModalState extends State<SignUpModal> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ThemeProvider.primaryButton,
+                      backgroundColor: AppColors.primary(context),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -400,7 +401,7 @@ class _SignUpModalState extends State<SignUpModal> {
                   onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
                   child: Text(
                     'Cancel',
-                    style: TextStyle(color: ThemeProvider.lightRed, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: AppColors.warning(context), fontWeight: FontWeight.w500),
                   ),
                 ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager/data_models/activity.dart';
 import 'package:task_manager/util/theme_provider.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 
 class ActivityDialog extends StatefulWidget {
   final Activity? activity;
@@ -69,7 +70,7 @@ class ActivityDialogState extends State<ActivityDialog> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: ThemeProvider.primaryButton,
+              primary: AppColors.primary(context),
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -104,14 +105,14 @@ class ActivityDialogState extends State<ActivityDialog> {
           data: Theme.of(context).copyWith(
             timePickerTheme: TimePickerThemeData(
               backgroundColor: Colors.white,
-              hourMinuteTextColor: ThemeProvider.primaryButton,
-              dayPeriodTextColor: ThemeProvider.primaryButton,
-              dialHandColor: ThemeProvider.primaryButton,
-              dialBackgroundColor: ThemeProvider.primaryButton.withOpacity(0.1),
+              hourMinuteTextColor: AppColors.primary(context),
+              dayPeriodTextColor: AppColors.primary(context),
+              dialHandColor: AppColors.primary(context),
+              dialBackgroundColor: AppColors.primary(context).withOpacity(0.1),
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: ThemeProvider.primaryButton,
+                foregroundColor: AppColors.primary(context),
               ),
             ),
           ),
@@ -128,29 +129,42 @@ class ActivityDialogState extends State<ActivityDialog> {
   
   // Build the recurrence type selector
   Widget _buildRecurrenceTypeSelector() {
+    final types = [
+      {'type': RecurrenceType.daily, 'label': 'Daily'},
+      {'type': RecurrenceType.weekly, 'label': 'Weekly'},
+      {'type': RecurrenceType.monthly, 'label': 'Monthly'},
+      {'type': RecurrenceType.custom, 'label': 'Custom'},
+    ];
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Recurrence Pattern',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
-          children: [
-            _recurrenceChip(RecurrenceType.daily, 'Daily'),
-            _recurrenceChip(RecurrenceType.weekly, 'Weekly'),
-            _recurrenceChip(RecurrenceType.monthly, 'Monthly'),
-            _recurrenceChip(RecurrenceType.custom, 'Custom'),
-          ],
+          children: types.map((item) {
+            final type = item['type'] as RecurrenceType;
+            final label = item['label'] as String;
+            final isSelected = _recurrenceType == type;
+            
+            return FilterChip(
+              selected: isSelected,
+              label: Text(label),
+              onSelected: (selected) {
+                setState(() {
+                  _recurrenceType = type;
+                });
+              },
+              backgroundColor: AppColors.surface(context).withOpacity(0.1),
+              selectedColor: AppColors.primary(context).withOpacity(0.2),
+              checkmarkColor: AppColors.primary(context),
+              labelStyle: TextStyle(
+                color: isSelected ? AppColors.primary(context) : AppColors.textPrimary(context),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            );
+          }).toList(),
         ),
         const SizedBox(height: 16),
-        
-        // Show additional settings based on selected recurrence type
         if (_recurrenceType == RecurrenceType.weekly)
           _buildWeeklySelector(),
         if (_recurrenceType == RecurrenceType.monthly)
@@ -161,27 +175,6 @@ class ActivityDialogState extends State<ActivityDialog> {
     );
   }
   
-  // Build a chip for recurrence type selection
-  Widget _recurrenceChip(RecurrenceType type, String label) {
-    final isSelected = _recurrenceType == type;
-    return FilterChip(
-      selected: isSelected,
-      label: Text(label),
-      onSelected: (selected) {
-        setState(() {
-          _recurrenceType = type;
-        });
-      },
-      backgroundColor: Colors.grey[200],
-      selectedColor: ThemeProvider.primaryButton.withOpacity(0.2),
-      checkmarkColor: ThemeProvider.primaryButton,
-      labelStyle: TextStyle(
-        color: isSelected ? ThemeProvider.primaryButton : Colors.black87,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
-    );
-  }
-  
   // Build weekly day selector
   Widget _buildWeeklySelector() {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -189,9 +182,12 @@ class ActivityDialogState extends State<ActivityDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Select Days of Week',
-          style: TextStyle(fontSize: 14),
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary(context),
+          ),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -212,11 +208,11 @@ class ActivityDialogState extends State<ActivityDialog> {
                   }
                 });
               },
-              backgroundColor: Colors.grey[200],
-              selectedColor: ThemeProvider.primaryButton.withOpacity(0.2),
-              checkmarkColor: ThemeProvider.primaryButton,
+              backgroundColor: AppColors.surface(context).withOpacity(0.1),
+              selectedColor: AppColors.primary(context).withOpacity(0.2),
+              checkmarkColor: AppColors.primary(context),
               labelStyle: TextStyle(
-                color: isSelected ? ThemeProvider.primaryButton : Colors.black87,
+                color: isSelected ? AppColors.primary(context) : AppColors.textPrimary(context),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             );
@@ -231,48 +227,37 @@ class ActivityDialogState extends State<ActivityDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Select Day of Month',
-          style: TextStyle(fontSize: 14),
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary(context),
+          ),
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          height: 50,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 31,
-            itemBuilder: (context, index) {
-              final day = index + 1;
-              final isSelected = _selectedDayOfMonth == day;
-              
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedDayOfMonth = day;
-                  });
-                },
-                child: Container(
-                  width: 40,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected 
-                        ? ThemeProvider.primaryButton 
-                        : Colors.grey[200],
-                  ),
-                  child: Center(
-                    child: Text(
-                      day.toString(),
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }
-          ),
+        Wrap(
+          spacing: 8,
+          children: List.generate(31, (index) {
+            final day = index + 1;
+            final isSelected = _selectedDayOfMonth == day;
+            
+            return FilterChip(
+              selected: isSelected,
+              label: Text(day.toString()),
+              onSelected: (selected) {
+                setState(() {
+                  _selectedDayOfMonth = selected ? day : null;
+                });
+              },
+              backgroundColor: AppColors.surface(context).withOpacity(0.1),
+              selectedColor: AppColors.primary(context).withOpacity(0.2),
+              checkmarkColor: AppColors.primary(context),
+              labelStyle: TextStyle(
+                color: isSelected ? AppColors.primary(context) : AppColors.textPrimary(context),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            );
+          }),
         ),
       ],
     );
@@ -451,7 +436,7 @@ class ActivityDialogState extends State<ActivityDialog> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: ThemeProvider.primaryButton,
+                        backgroundColor: AppColors.primary(context),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),

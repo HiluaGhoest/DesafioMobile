@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:task_manager/data_models/task.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager/util/theme_provider.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 
 class TaskDialog extends StatefulWidget {
   final Task? task;
@@ -40,6 +41,7 @@ class TaskDialogState extends State<TaskDialog> {
     _descriptionController.dispose();
     super.dispose();
   }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -48,10 +50,11 @@ class TaskDialogState extends State<TaskDialog> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),   // Allow tasks up to 5 years in the future
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(            colorScheme: ColorScheme.light(
-              primary: ThemeProvider.primaryButton,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary(context),
+              onPrimary: AppColors.surface(context),
+              onSurface: AppColors.textPrimary(context),
             ),
           ),
           child: child!,
@@ -64,22 +67,24 @@ class TaskDialogState extends State<TaskDialog> {
       });
     }
   }
+
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(            timePickerTheme: TimePickerThemeData(
-              backgroundColor: Colors.white,
-              hourMinuteTextColor: ThemeProvider.primaryButton,
-              dayPeriodTextColor: ThemeProvider.primaryButton,
-              dialHandColor: ThemeProvider.primaryButton,
-              dialBackgroundColor: ThemeProvider.primaryButton.withOpacity(0.1),
+          data: Theme.of(context).copyWith(
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: AppColors.surface(context),
+              hourMinuteTextColor: AppColors.primary(context),
+              dayPeriodTextColor: AppColors.primary(context),
+              dialHandColor: AppColors.primary(context),
+              dialBackgroundColor: AppColors.primary(context).withOpacity(0.1),
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: ThemeProvider.primaryButton,
+                foregroundColor: AppColors.primary(context),
               ),
             ),
           ),
@@ -111,18 +116,24 @@ class TaskDialogState extends State<TaskDialog> {
             children: [
               Text(
                 isEditing ? 'Edit Task' : 'Create Task',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary(context),
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Task Name',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: AppColors.primary(context),
+                    ),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -134,9 +145,14 @@ class TaskDialogState extends State<TaskDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Description (Optional)',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: AppColors.primary(context),
+                    ),
+                  ),
                 ),
                 minLines: 3,
                 maxLines: 5,
@@ -148,9 +164,14 @@ class TaskDialogState extends State<TaskDialog> {
                     child: InkWell(
                       onTap: () => _selectDate(context),
                       child: InputDecorator(
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Date',
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.primary(context),
+                            ),
+                          ),
                         ),
                         child: Text(DateFormat('MMM d, yyyy').format(_selectedDate)),
                       ),
@@ -161,9 +182,14 @@ class TaskDialogState extends State<TaskDialog> {
                     child: InkWell(
                       onTap: () => _selectTime(context),
                       child: InputDecorator(
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Time',
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.primary(context),
+                            ),
+                          ),
                         ),
                         child: Text(_selectedTime.format(context)),
                       ),
@@ -174,10 +200,11 @@ class TaskDialogState extends State<TaskDialog> {
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [              TextButton(
+                children: [
+                  TextButton(
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey[700],
+                      foregroundColor: AppColors.textSecondary(context),
                     ),
                     child: const Text('Cancel'),
                   ),
@@ -200,8 +227,8 @@ class TaskDialogState extends State<TaskDialog> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ThemeProvider.primaryButton,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary(context),
+                      foregroundColor: AppColors.surface(context),
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),

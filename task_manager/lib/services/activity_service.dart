@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:task_manager/data_models/activity.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 
 class ActivityService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,11 +18,53 @@ class ActivityService {
   CollectionReference<Map<String, dynamic>> get _activitiesCollection => 
       _firestore.collection('users').doc(_userId).collection('activities');
       
+  Future<bool> shouldUseSimulatedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('useSimulatedData') ?? false;
+  }
+
   // Get all activities for the current user
-  Stream<List<Activity>> getActivities() {
-    if (_userId == null) return Stream.value([]);
+  Stream<List<Activity>> getActivities() async* {
+    if (await shouldUseSimulatedData()) {
+      final activities = List.generate(
+        Random().nextInt(5) + 3, // 3-8 activities
+        (index) {
+          final recurrenceType = RecurrenceType.values[Random().nextInt(RecurrenceType.values.length)];
+          final startDate = DateTime.now().subtract(Duration(days: Random().nextInt(30)));
+          
+          return Activity(
+            id: 'simulated_$index',
+            name: 'Simulated Activity ${index + 1}',
+            description: 'This is a simulated activity for testing',
+            startDate: startDate,
+            time: TimeOfDay(
+              hour: Random().nextInt(24),
+              minute: Random().nextInt(4) * 15, // 0, 15, 30, or 45
+            ),
+            recurrenceType: recurrenceType,
+            selectedDaysOfWeek: recurrenceType == RecurrenceType.weekly
+                ? List.generate(
+                    Random().nextInt(3) + 1,
+                    (i) => Random().nextInt(7) + 1, // 1-7 for weekdays
+                  ).toSet().toList()
+                : null,
+            selectedDayOfMonth: recurrenceType == RecurrenceType.monthly
+                ? Random().nextInt(28) + 1 // 1-28 for monthly
+                : null,
+            isActive: Random().nextBool(),
+          );
+        },
+      );
+      yield activities;
+      return;
+    }
+
+    if (_userId == null) {
+      yield [];
+      return;
+    }
     
-    return _activitiesCollection
+    yield* _activitiesCollection
       .orderBy('startDate')
       .orderBy('time.hour')
       .orderBy('time.minute')
@@ -31,16 +75,40 @@ class ActivityService {
   }
   
   // Get activities that are active and due today
-  Stream<List<Activity>> getActivitiesDueToday() {
-    if (_userId == null) return Stream.value([]);
+  Stream<List<Activity>> getActivitiesDueToday() async* {
+    if (await shouldUseSimulatedData()) {
+      final activities = List.generate(
+        Random().nextInt(3) + 1, // 1-3 activities
+        (index) => Activity(
+          id: 'simulated_today_$index',
+          name: 'Today\'s Activity ${index + 1}',
+          description: 'This is a simulated activity due today',
+          startDate: DateTime.now(),
+          time: TimeOfDay(
+            hour: Random().nextInt(24),
+            minute: Random().nextInt(4) * 15,
+          ),
+          recurrenceType: RecurrenceType.daily,
+          isActive: true,
+          lastCompletionDate: Random().nextBool() 
+              ? DateTime.now() 
+              : null,
+        ),
+      );
+      yield activities;
+      return;
+    }
+
+    if (_userId == null) {
+      yield [];
+      return;
+    }
     
-    // First fetch all active activities
-    return _activitiesCollection
+    yield* _activitiesCollection
       .where('isActive', isEqualTo: true)
       .snapshots()
       .map((snapshot) {
         final activities = snapshot.docs.map((doc) => Activity.fromFirestore(doc)).toList();
-        // Then filter for those due today based on their recurrence pattern
         return activities.where((activity) => activity.isDueToday()).toList();
       });
   }
@@ -208,6 +276,17 @@ class ActivityService {
   
   // Get activity statistics
   Future<Map<String, dynamic>> getActivityStatistics() async {
+    if (await shouldUseSimulatedData()) {
+      final totalActivities = Random().nextInt(10) + 5; // 5-15 activities
+      return {
+        'totalActivities': totalActivities,
+        'activeActivities': Random().nextInt(totalActivities) + 1,
+        'totalCompletions': Random().nextInt(50) + 20,
+        'activitiesCompletedToday': Random().nextInt(5) + 1,
+        'activitiesDueToday': Random().nextInt(8) + 2,
+      };
+    }
+
     if (_userId == null) return {};
     
     try {
@@ -275,6 +354,10 @@ class ActivityService {
   
   // Get number of activity completions for a specific date
   Future<int> getCompletionsForDate(DateTime date) async {
+    if (await shouldUseSimulatedData()) {
+      return Random().nextInt(6); // 0-5 completions
+    }
+
     if (_userId == null) return 0;
     
     try {

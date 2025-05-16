@@ -7,6 +7,7 @@ import 'dart:ui';
 import 'package:task_manager/screens/main_app_page.dart';
 import 'package:task_manager/widgets/signup_modal.dart';
 import 'package:flutter/foundation.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,11 +28,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
+      backgroundColor: AppColors.background(context),
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: ThemeProvider.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: Provider.of<ThemeProvider>(context).backgroundGradient,
         ),
         child: Center(
           child: SingleChildScrollView(
@@ -41,13 +43,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Logo
                 Container(
                   decoration: BoxDecoration(
-                    color: ThemeProvider.primaryButton.withAlpha((0.3 * 255).toInt()),
+                    color: AppColors.primary(context).withAlpha((0.3 * 255).toInt()),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   padding: const EdgeInsets.all(24),
                   child: Icon(
                     Icons.eco_rounded,
-                    color: ThemeProvider.primaryButton,
+                    color: AppColors.primary(context),
                     size: 48,
                   ),
                 ),
@@ -57,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 340,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                   decoration: ThemeProvider.cardDecoration(context).copyWith(
-                    color: Colors.white.withAlpha((0.7 * 255).toInt()), // Less transparent
+                    color: AppColors.surface(context).withAlpha((0.7 * 255).toInt()), // Less transparent
                     backgroundBlendMode: BlendMode.overlay,
                   ),
                   child: ClipRRect(
@@ -73,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Welcome Back',
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    color: AppColors.textPrimary(context),
                                   ),
                               textAlign: TextAlign.center,
                             ),
@@ -83,8 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               child: OutlinedButton.icon(
                                 style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: ThemeProvider.googleButtonBorder),
-                                  backgroundColor: Colors.white,
+                                  side: BorderSide(color: AppColors.primary(context)),
+                                  backgroundColor: AppColors.surface(context),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -236,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: Text(
                                     'Forgot password?',
                                     style: TextStyle(
-                                      color: ThemeProvider.lightRed,
+                                      color: AppColors.error(context),
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -250,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: ThemeProvider.primaryButton,
+                                  backgroundColor: AppColors.primary(context),
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
@@ -310,7 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: Theme.of(context).textTheme.bodyMedium,
                     children: [                      TextSpan(
                         text: 'Sign up',
-                        style: TextStyle(color: ThemeProvider.signUpGreen, fontWeight: FontWeight.w600),
+                        style: TextStyle(color: AppColors.success(context), fontWeight: FontWeight.w600),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             // Show the sign up modal

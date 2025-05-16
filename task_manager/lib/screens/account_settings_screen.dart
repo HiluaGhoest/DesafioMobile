@@ -9,6 +9,8 @@ import 'package:task_manager/screens/login_screen.dart';
 import 'package:task_manager/screens/settings_screen.dart';
 import 'package:task_manager/services/user_profile_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
+import 'package:task_manager/util/theme_provider.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({super.key});
@@ -318,375 +320,380 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    
     return Scaffold(
+      backgroundColor: AppColors.background(context),
       appBar: AppBar(
-        title: const Text('Account Settings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+        title: Text(
+          'Account Settings',
+          style: TextStyle(
+            color: AppColors.surface(context),
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: const Color(0xFFB2D8B2), // Match the gradient's top color
+        backgroundColor: AppColors.primary(context),
+        foregroundColor: Colors.white,
       ),
-      body: Stack(
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height, // Gradient covers half the page
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                stops: [0.0, 0.5],
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFB2D8B2), // Slightly darker green
-                  Colors.white,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: Provider.of<ThemeProvider>(context).backgroundGradient,
+        ),
+        child: Stack(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height, // Gradient covers half the page
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  stops: [0.0, 0.5],
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFB2D8B2), // Slightly darker green
+                    Colors.white,
+                  ],
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Column(
+                children: [
+                  Expanded(
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _errorMessage != null
+                              ? Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.error_outline, size: 48, color: Colors.red),
+                                        const SizedBox(height: 16),
+                                        const Text(
+                                          'Error loading profile',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(_errorMessage!, textAlign: TextAlign.center),
+                                        const SizedBox(height: 24),
+                                        ElevatedButton(
+                                          onPressed: _loadUserProfile,
+                                          child: const Text('Try Again'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : SingleChildScrollView(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        // User profile header with circular avatar and username
+                                        Center(
+                                          child: Column(
+                                            children: [
+                                              Stack(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 64,
+                                                    backgroundColor: Colors.white,
+                                                    backgroundImage: _userProfile?.photoUrl != null 
+                                                        ? _userProfile!.photoUrl!.startsWith('file://')
+                                                            ? FileImage(File(_userProfile!.photoUrl!.replaceFirst('file://', '')))
+                                                            : NetworkImage(_userProfile!.photoUrl!) as ImageProvider
+                                                        : (_userProfile?.photoUrl != null
+                                                            ? NetworkImage(_userProfile!.photoUrl!) as ImageProvider
+                                                            : null),
+                                                    child: (_userProfile?.photoUrl == null && _userProfile?.photoUrl == null)
+                                                        ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                                                        : null,
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                _userProfile?.displayName ?? _userProfile?.displayName ?? 'Sarah Johnson',
+                                                style: const TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                '@${_userProfile?.username ?? 'sarahj'}',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _userProfile?.email ?? _userProfile?.email ?? 'sarah.johnson@email.com',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        
+                                        const SizedBox(
+                                          height: 64),
+                                        
+                                        // Settings Card
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey.withAlpha((0.1 * 255).toInt()),
+                                                spreadRadius: 1,
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              // Edit Profile
+                                              ListTile(
+                                                leading: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.green.withAlpha((0.1 * 255).toInt()),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.person_outline,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                                title: const Text(
+                                                  'Edit Profile',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                trailing: const Icon(
+                                                  Icons.chevron_right,
+                                                  color: Colors.grey,
+                                                ),
+                                                onTap: () async {
+                                                  if (_userProfile == null) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Profile data not available')),
+                                                    );
+                                                    return;
+                                                  }
+                                                  
+                                                  final result = await Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) => EditProfileScreen(userProfile: _userProfile!),
+                                                    ),
+                                                  );
+                                                  
+                                                  if (result == true) {
+                                                    // Refresh profile if changes were made
+                                                    await _loadUserProfile();
+                                                  }
+                                                },
+                                              ),
+                                              
+                                              const Divider(height: 1, indent: 16, endIndent: 16),
+                                              
+                                              // Change Password
+                                              ListTile(
+                                                leading: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.green.withAlpha((0.1 * 255).toInt()),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.lock_outline,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                                title: const Text(
+                                                  'Change Password',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                trailing: const Icon(
+                                                  Icons.chevron_right,
+                                                  color: Colors.grey,
+                                                ),
+                                                onTap: () async {
+                                                  // Check if user is signed in with Google
+                                                  final user = FirebaseAuth.instance.currentUser;
+                                                  final isGoogleUser = user?.providerData.any(
+                                                    (info) => info.providerId == 'google.com'
+                                                  ) ?? false;
+                                                  
+                                                  if (isGoogleUser) {
+                                                    // Show message for Google users
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text('Google account users cannot change password through the app.'),
+                                                        duration: Duration(seconds: 5),
+                                                      ),
+                                                    );
+                                                    return;
+                                                  }
+                                                  
+                                                  // Navigate to change password screen
+                                                  final result = await Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) => const ChangePasswordScreen(),
+                                                    ),
+                                                  );
+                                                  
+                                                  // Refresh profile if needed
+                                                  if (result == true) {
+                                                    _loadUserProfile();
+                                                  }
+                                                },
+                                              ),
+                                                const Divider(height: 1, indent: 16, endIndent: 16),
+                                              
+                                              // Language Settings
+                                              ListTile(
+                                                leading: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.blue.withAlpha((0.1 * 255).toInt()),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.language,
+                                                    color: Colors.blue,
+                                                  ),
+                                                ),
+                                                title: const Text(
+                                                  'Language Settings',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                trailing: const Icon(
+                                                  Icons.chevron_right,
+                                                  color: Colors.grey,
+                                                ),
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) => const SettingsScreen(),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                              
+                                              const Divider(height: 1, indent: 16, endIndent: 16),
+                                              
+                                              // Logout
+                                              ListTile(
+                                                leading: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.red.withAlpha((0.1 * 255).toInt()),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.logout,
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                                title: const Text(
+                                                  'Logout',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                trailing: const Icon(
+                                                  Icons.chevron_right,
+                                                  color: Colors.grey,
+                                                ),
+                                                onTap: () async {
+                                                  try {
+                                                    // Show loading indicator
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Signing out...'))
+                                                    );
+                                                    
+                                                    // Sign out from both Google and Firebase
+                                                    await Provider.of<app_auth.AuthProvider>(context, listen: false).signOut();
+                                                    
+                                                    // ignore: use_build_context_synchronously
+                                                    Navigator.of(context).pushAndRemoveUntil(
+                                                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                                      (route) => false,
+                                                    );
+                                                  } catch (e) {
+                                                    // Show error message
+                                                    // ignore: use_build_context_synchronously
+                                                    ScaffoldMessenger.of(context).clearSnackBars();
+                                                    // ignore: use_build_context_synchronously
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(content: Text('Error signing out: ${e.toString()}'))
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                    ),
+                  // Delete Account Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withAlpha((0.1 * 255).toInt()),
+                          spreadRadius: 1,
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    margin: const EdgeInsets.all(16.0),
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withAlpha((0.1 * 255).toInt()),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
+                      ),
+                      title: const Text(
+                        'Delete Account',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      onTap: _deleteAccount,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          Positioned.fill(
-            child: Column(
-              children: [
-                Expanded(
-                    child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _errorMessage != null
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.error_outline, size: 48, color: Colors.red),
-                                      const SizedBox(height: 16),
-                                      const Text(
-                                        'Error loading profile',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(_errorMessage!, textAlign: TextAlign.center),
-                                      const SizedBox(height: 24),
-                                      ElevatedButton(
-                                        onPressed: _loadUserProfile,
-                                        child: const Text('Try Again'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : SingleChildScrollView(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    children: [
-                                      // User profile header with circular avatar and username
-                                      Center(
-                                        child: Column(
-                                          children: [
-                                            Stack(
-                                              children: [
-                                                CircleAvatar(
-                                                  radius: 64,
-                                                  backgroundColor: Colors.white,
-                                                  backgroundImage: _userProfile?.photoUrl != null 
-                                                      ? _userProfile!.photoUrl!.startsWith('file://')
-                                                          ? FileImage(File(_userProfile!.photoUrl!.replaceFirst('file://', '')))
-                                                          : NetworkImage(_userProfile!.photoUrl!) as ImageProvider
-                                                      : (user?.photoURL != null
-                                                          ? NetworkImage(user!.photoURL!) as ImageProvider
-                                                          : null),
-                                                  child: (_userProfile?.photoUrl == null && user?.photoURL == null)
-                                                      ? const Icon(Icons.person, size: 40, color: Colors.grey)
-                                                      : null,
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 12),
-                                            Text(
-                                              _userProfile?.displayName ?? user?.displayName ?? 'Sarah Johnson',
-                                              style: const TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              '@${_userProfile?.username ?? 'sarahj'}',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              _userProfile?.email ?? user?.email ?? 'sarah.johnson@email.com',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      
-                                      const SizedBox(
-                                        height: 64),
-                                      
-                                      // Settings Card
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(16),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.grey.withAlpha((0.1 * 255).toInt()),
-                                              spreadRadius: 1,
-                                              blurRadius: 6,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            // Edit Profile
-                                            ListTile(
-                                              leading: Container(
-                                                padding: const EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                    color: Colors.green.withAlpha((0.1 * 255).toInt()),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.person_outline,
-                                                  color: Colors.green,
-                                                ),
-                                              ),
-                                              title: const Text(
-                                                'Edit Profile',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              trailing: const Icon(
-                                                Icons.chevron_right,
-                                                color: Colors.grey,
-                                              ),
-                                              onTap: () async {
-                                                if (_userProfile == null) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('Profile data not available')),
-                                                  );
-                                                  return;
-                                                }
-                                                
-                                                final result = await Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (context) => EditProfileScreen(userProfile: _userProfile!),
-                                                  ),
-                                                );
-                                                
-                                                if (result == true) {
-                                                  // Refresh profile if changes were made
-                                                  await _loadUserProfile();
-                                                }
-                                              },
-                                            ),
-                                            
-                                            const Divider(height: 1, indent: 16, endIndent: 16),
-                                            
-                                            // Change Password
-                                            ListTile(
-                                              leading: Container(
-                                                padding: const EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                    color: Colors.green.withAlpha((0.1 * 255).toInt()),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.lock_outline,
-                                                  color: Colors.green,
-                                                ),
-                                              ),
-                                              title: const Text(
-                                                'Change Password',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              trailing: const Icon(
-                                                Icons.chevron_right,
-                                                color: Colors.grey,
-                                              ),
-                                              onTap: () async {
-                                                // Check if user is signed in with Google
-                                                final user = FirebaseAuth.instance.currentUser;
-                                                final isGoogleUser = user?.providerData.any(
-                                                  (info) => info.providerId == 'google.com'
-                                                ) ?? false;
-                                                
-                                                if (isGoogleUser) {
-                                                  // Show message for Google users
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text('Google account users cannot change password through the app.'),
-                                                      duration: Duration(seconds: 5),
-                                                    ),
-                                                  );
-                                                  return;
-                                                }
-                                                
-                                                // Navigate to change password screen
-                                                final result = await Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (context) => const ChangePasswordScreen(),
-                                                  ),
-                                                );
-                                                
-                                                // Refresh profile if needed
-                                                if (result == true) {
-                                                  _loadUserProfile();
-                                                }
-                                              },
-                                            ),
-                                              const Divider(height: 1, indent: 16, endIndent: 16),
-                                            
-                                            // Language Settings
-                                            ListTile(
-                                              leading: Container(
-                                                padding: const EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.blue.withAlpha((0.1 * 255).toInt()),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.language,
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              title: const Text(
-                                                'Language Settings',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              trailing: const Icon(
-                                                Icons.chevron_right,
-                                                color: Colors.grey,
-                                              ),
-                                              onTap: () {
-                                                Navigator.of(context).push(
-                                                  MaterialPageRoute(
-                                                    builder: (context) => const SettingsScreen(),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                            
-                                            const Divider(height: 1, indent: 16, endIndent: 16),
-                                            
-                                            // Logout
-                                            ListTile(
-                                              leading: Container(
-                                                padding: const EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red.withAlpha((0.1 * 255).toInt()),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.logout,
-                                                  color: Colors.red,
-                                                ),
-                                              ),
-                                              title: const Text(
-                                                'Logout',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              trailing: const Icon(
-                                                Icons.chevron_right,
-                                                color: Colors.grey,
-                                              ),
-                                              onTap: () async {
-                                                try {
-                                                  // Show loading indicator
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('Signing out...'))
-                                                  );
-                                                  
-                                                  // Sign out from both Google and Firebase
-                                                  await Provider.of<app_auth.AuthProvider>(context, listen: false).signOut();
-                                                  
-                                                  // ignore: use_build_context_synchronously
-                                                  Navigator.of(context).pushAndRemoveUntil(
-                                                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                                    (route) => false,
-                                                  );
-                                                } catch (e) {
-                                                  // Show error message
-                                                  // ignore: use_build_context_synchronously
-                                                  ScaffoldMessenger.of(context).clearSnackBars();
-                                                  // ignore: use_build_context_synchronously
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text('Error signing out: ${e.toString()}'))
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                  ),
-                // Delete Account Button
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withAlpha((0.1 * 255).toInt()),
-                        spreadRadius: 1,
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  margin: const EdgeInsets.all(16.0),
-                  child: ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withAlpha((0.1 * 255).toInt()),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.red,
-                      ),
-                    ),
-                    title: const Text(
-                      'Delete Account',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    onTap: _deleteAccount,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

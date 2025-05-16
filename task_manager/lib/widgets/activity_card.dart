@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager/data_models/activity.dart';
 import 'package:task_manager/util/theme_provider.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 
 class ActivityCard extends StatelessWidget {
   final Activity activity;
@@ -41,7 +42,7 @@ class ActivityCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(!activity.isActive || completedToday ? 0.03 : 0.1),
+            color: AppColors.textPrimary(context).withOpacity(!activity.isActive || completedToday ? 0.03 : 0.1),
             blurRadius: !activity.isActive || completedToday ? 3 : 5,
             offset: Offset(0, !activity.isActive || completedToday ? 1 : 2),
           ),
@@ -53,16 +54,16 @@ class ActivityCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: !activity.isActive 
-            ? BorderSide(color: Colors.grey[300]!, width: 1)
+            ? BorderSide(color: AppColors.surface(context).withOpacity(0.7), width: 1)
             : (completedToday 
-                ? BorderSide(color: ThemeProvider.primaryButton.withOpacity(0.5), width: 1)
+                ? BorderSide(color: AppColors.primary(context).withOpacity(0.5), width: 1)
                 : BorderSide.none),
         ),
         color: !activity.isActive
-            ? Colors.grey[100]
+            ? AppColors.surface(context).withOpacity(0.7)
             : (completedToday
-                ? ThemeProvider.primaryButton.withOpacity(0.1)
-                : Colors.white),
+                ? AppColors.primary(context).withOpacity(0.1)
+                : AppColors.surface(context)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -79,10 +80,10 @@ class ActivityCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: !activity.isActive
-                          ? Colors.grey
+                          ? AppColors.textSecondary(context)
                           : (completedToday
-                              ? Colors.green
-                              : (canBeCompletedToday ? Colors.orange : Colors.blue)),
+                              ? AppColors.success(context)
+                              : (canBeCompletedToday ? AppColors.warning(context) : AppColors.primary(context))),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -97,7 +98,7 @@ class ActivityCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: !activity.isActive ? Colors.grey : Colors.black87,
+                            color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context),
                             decoration: completedToday ? TextDecoration.lineThrough : null,
                           ),
                         ),
@@ -108,7 +109,7 @@ class ActivityCard extends StatelessWidget {
                               activity.description!,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: !activity.isActive ? Colors.grey : Colors.black54,
+                                color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.7),
                               ),
                             ),
                           ),
@@ -118,14 +119,14 @@ class ActivityCard extends StatelessWidget {
                             Icon(
                               Icons.repeat,
                               size: 16,
-                              color: !activity.isActive ? Colors.grey : ThemeProvider.primaryButton,
+                              color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.primary(context),
                             ),
                             const SizedBox(width: 4),
                             Text(
                               activity.getRecurrenceDescription(),
                               style: TextStyle(
                                 fontSize: 13,
-                                color: !activity.isActive ? Colors.grey : Colors.black54,
+                                color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.7),
                               ),
                             ),
                           ],
@@ -136,28 +137,28 @@ class ActivityCard extends StatelessWidget {
                             Icon(
                               Icons.access_time,
                               size: 16,
-                              color: !activity.isActive ? Colors.grey : Colors.black54,
+                              color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                             ),
                             const SizedBox(width: 4),
                             Text(
                               activity.time.format(context),
                               style: TextStyle(
                                 fontSize: 13,
-                                color: !activity.isActive ? Colors.grey : Colors.black54,
+                                color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                               ),
                             ),
                             const SizedBox(width: 16),
                             Icon(
                               Icons.calendar_today,
                               size: 16,
-                              color: !activity.isActive ? Colors.grey : Colors.black54,
+                              color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                             ),
                             const SizedBox(width: 4),
                             Text(
                               'Started ${DateFormat('MMM d, y').format(activity.startDate)}',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: !activity.isActive ? Colors.grey : Colors.black54,
+                                color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                               ),
                             ),
                           ],
@@ -170,14 +171,14 @@ class ActivityCard extends StatelessWidget {
                                 Icon(
                                   Icons.done_all,
                                   size: 16,
-                                  color: !activity.isActive ? Colors.grey : Colors.green.shade700,
+                                  color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.success(context),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Completed ${activity.completionCount} ${activity.completionCount == 1 ? 'time' : 'times'}',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: !activity.isActive ? Colors.grey : Colors.green.shade700,
+                                    color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.success(context),
                                   ),
                                 ),
                               ],
@@ -191,7 +192,7 @@ class ActivityCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: !activity.isActive ? Colors.grey : Colors.black54,
+                      color: !activity.isActive ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                     ),
                     onSelected: (value) {
                       if (value == 'edit') {
@@ -253,7 +254,7 @@ class ActivityCard extends StatelessWidget {
                         icon: const Icon(Icons.check, size: 18),
                         label: const Text('Mark Complete'),
                         style: TextButton.styleFrom(
-                          foregroundColor: ThemeProvider.primaryButton,
+                          foregroundColor: AppColors.primary(context),
                         ),
                       ),
                     ],
@@ -270,14 +271,14 @@ class ActivityCard extends StatelessWidget {
                       Icon(
                         Icons.check_circle,
                         size: 16,
-                        color: Colors.green,
+                        color: AppColors.success(context),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Completed Today',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.green,
+                          color: AppColors.success(context),
                           fontStyle: FontStyle.italic,
                         ),
                       ),

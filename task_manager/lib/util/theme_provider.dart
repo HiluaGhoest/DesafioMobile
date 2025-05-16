@@ -1,21 +1,97 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
+import 'package:task_manager/util/colors/app_theme.dart';
 
 /// A utility class that provides standardized theme elements throughout the app.
 /// 
 /// This class contains constants and methods for UI elements like gradients,
 /// decorations, and common asset paths.
-class ThemeProvider {  /// Background gradient for the login and authentication screens.
-  /// 
-  /// A subtle cream-to-off-white gradient that creates a warm, inviting atmosphere
-  /// for user onboarding flows.
-  static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFFFFDF6), // #FFFDF6
-      Color(0xFFFAF6E9), // #FAF6E9
-    ],
-  );
+class ThemeProvider extends ChangeNotifier {
+  static const String _themeKey = 'selected_theme';
+  final SharedPreferences _prefs;
+  
+  // Cache for background gradients and themes
+  final Map<ThemeVariant, LinearGradient> _gradientCache = {};
+  ThemeData? _cachedTheme;
+  ThemeVariant _currentTheme = ThemeVariant.lightBlue;
+  
+  ThemeProvider(this._prefs) {
+    _loadSavedTheme();
+    _cacheGradients();
+  }
+
+  void _loadSavedTheme() {
+    final savedTheme = _prefs.getString(_themeKey);
+    if (savedTheme != null) {
+      _currentTheme = ThemeVariant.values.firstWhere(
+        (e) => e.toString() == savedTheme,
+        orElse: () => ThemeVariant.lightBlue,
+      );
+      _cachedTheme = AppTheme.getTheme(_currentTheme);
+    }
+  }
+  
+  ThemeVariant get currentTheme => _currentTheme;
+  ThemeData get theme => _cachedTheme ?? AppTheme.getTheme(_currentTheme);
+  bool get isDarkMode => _currentTheme == ThemeVariant.darkBlue || 
+                        _currentTheme == ThemeVariant.darkGreen;
+
+  Future<void> setTheme(ThemeVariant variant) async {
+    if (_currentTheme != variant) {
+      _currentTheme = variant;
+      _cachedTheme = AppTheme.getTheme(variant);
+      await _prefs.setString(_themeKey, variant.toString());
+      notifyListeners();
+    }
+  }
+
+  void toggleTheme() {
+    final newTheme = switch (_currentTheme) {
+      ThemeVariant.lightBlue => ThemeVariant.darkBlue,
+      ThemeVariant.lightGreen => ThemeVariant.darkGreen,
+      ThemeVariant.darkBlue => ThemeVariant.lightBlue,
+      ThemeVariant.darkGreen => ThemeVariant.lightGreen,
+    };
+    setTheme(newTheme);
+  }
+
+  void toggleColor() {
+    final newTheme = switch (_currentTheme) {
+      ThemeVariant.lightBlue => ThemeVariant.lightGreen,
+      ThemeVariant.lightGreen => ThemeVariant.lightBlue,
+      ThemeVariant.darkBlue => ThemeVariant.darkGreen,
+      ThemeVariant.darkGreen => ThemeVariant.darkBlue,
+    };
+    setTheme(newTheme);
+  }
+
+  void _cacheGradients() {
+    const darkGradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFF000000), Color(0xFF000000)],
+    );
+
+    const lightGreenGradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFE8F5E9), Color(0xFFF5F5F5)],
+    );
+
+    const lightBlueGradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFE3F2FD), Color(0xFFF5F5F5)],
+    );
+
+    _gradientCache[ThemeVariant.darkBlue] = darkGradient;
+    _gradientCache[ThemeVariant.darkGreen] = darkGradient;
+    _gradientCache[ThemeVariant.lightGreen] = lightGreenGradient;
+    _gradientCache[ThemeVariant.lightBlue] = lightBlueGradient;
+  }
+
+  LinearGradient get backgroundGradient => _gradientCache[_currentTheme]!;
 
   /// Card decoration style used for authentication forms and dialogs.
   /// 
@@ -41,20 +117,26 @@ class ThemeProvider {  /// Background gradient for the login and authentication 
   static const String googleLogo = 'assets/logos/google_logo.png';
 
   // Button color  /// Primary button color - green shade used for primary actions
-  static const Color primaryButton = Color(0xFFA0C878); // #A0C878
+  @deprecated
+  static Color primaryButton(BuildContext context) => AppColors.primary(context);
   
   /// Border color for Google sign-in button
-  static const Color googleButtonBorder = Color(0xFFDDEB9D); // #DDEB9D
+  @deprecated
+  static Color googleButtonBorder(BuildContext context) => AppColors.surface(context);
   
   /// Green color used for sign-up related UI elements
-  static const Color signUpGreen = Color(0xFFA0C878); // #A0C878
+  @deprecated
+  static Color signUpGreen(BuildContext context) => AppColors.success(context);
   
   /// Color used for forgot password links and related elements
-  static const Color forgotPassword = Color(0xFFA0C878); // #DDEB9D
+  @deprecated
+  static Color forgotPassword(BuildContext context) => AppColors.primary(context);
   
   /// Primary red color for destructive actions or errors
-  static const Color red = Color(0xFFEA4C2D); // #EA4C2D
+  @deprecated
+  static Color red(BuildContext context) => AppColors.error(context);
   
   /// Lighter red color for less critical warnings or secondary error states
-  static const Color lightRed = Color(0xFFFF8B8B); // #FFE6E6
+  @deprecated
+  static Color lightRed(BuildContext context) => AppColors.error(context).withOpacity(0.3);
 }

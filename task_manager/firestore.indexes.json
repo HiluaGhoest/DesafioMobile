@@ -15,12 +15,6 @@
         {
           "fieldPath": "time.minute",
           "order": "ASCENDING"
-        },
-        { 
-          "fieldPath": "isCompleted", "order": "ASCENDING"
-        },
-        { 
-          "fieldPath": "__name__", "order": "ASCENDING" 
         }
       ]
     },
@@ -52,6 +46,24 @@
         },
         {
           "fieldPath": "time.minute",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "tasks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isCompleted",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
           "order": "ASCENDING"
         }
       ]

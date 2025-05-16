@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_manager/authentication/auth_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
+import 'package:task_manager/util/theme_provider.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -83,30 +85,24 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background(context),
       appBar: AppBar(
-        title: const Text('Change Password'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+        title: Text(
+          'Change Password',
+          style: TextStyle(
+            color: AppColors.surface(context),
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: const Color(0xFFB2D8B2), // Match the gradient's top color
+        backgroundColor: AppColors.primary(context),
+        foregroundColor: Colors.white,
       ),
       body: Stack(
         children: [
           Container(
             height: MediaQuery.of(context).size.height,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                stops: [0.0, 0.5],
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFB2D8B2), // Slightly darker green
-                  Colors.white,
-                ],
-              ),
+            decoration: BoxDecoration(
+              gradient: Provider.of<ThemeProvider>(context).backgroundGradient,
             ),
           ),
           Positioned.fill(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager/util/theme_provider.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 
 class DaySelector extends StatelessWidget {
   final DateTime selectedDate;
@@ -39,7 +40,7 @@ class DaySelector extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: ThemeProvider.primaryButton,
+              color: AppColors.textPrimary(context),
             ),
           ),
         ),
@@ -78,8 +79,8 @@ class DaySelector extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 5),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? ThemeProvider.primaryButton
-                        : Colors.white,
+                        ? AppColors.primary(context)
+                        : AppColors.surface(context),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -89,7 +90,7 @@ class DaySelector extends StatelessWidget {
                       ),
                     ],
                     border: isToday && !isSelected
-                        ? Border.all(color: ThemeProvider.primaryButton, width: 2)
+                        ? Border.all(color: AppColors.primary(context), width: 2)
                         : null,
                   ),
                   child: Column(
@@ -101,10 +102,10 @@ class DaySelector extends StatelessWidget {
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: isSelected
-                              ? Colors.white
+                              ? AppColors.surface(context)
                               : isPast && !isToday
                                   ? Colors.grey.shade400
-                                  : Colors.grey.shade800,
+                                  : AppColors.textPrimary(context),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -113,10 +114,10 @@ class DaySelector extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 10,
                           color: isSelected
-                              ? Colors.white.withOpacity(0.9)
+                              ? AppColors.surface(context).withOpacity(0.9)
                               : isPast && !isToday
                                   ? Colors.grey.shade400
-                                  : Colors.grey.shade700,
+                                  : AppColors.textSecondary(context),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -126,7 +127,7 @@ class DaySelector extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: isToday && !isSelected
-                              ? ThemeProvider.primaryButton.withOpacity(0.15)
+                              ? AppColors.primary(context).withOpacity(0.15)
                               : Colors.transparent,
                         ),
                         child: Center(
@@ -138,12 +139,12 @@ class DaySelector extends StatelessWidget {
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                               color: isSelected
-                                  ? Colors.white
+                                  ? AppColors.surface(context)
                                   : isPast && !isToday
                                       ? Colors.grey.shade400
                                       : isToday
-                                          ? ThemeProvider.primaryButton
-                                          : Colors.black87,
+                                          ? AppColors.primary(context)
+                                          : AppColors.textPrimary(context),
                             ),
                           ),
                         ),

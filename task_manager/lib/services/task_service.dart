@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:task_manager/data_models/task.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'dart:math';
 
 class TaskService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -30,15 +33,39 @@ class TaskService {
   }
   
   // Get tasks for a specific date
-  Stream<List<Task>> getTasksForDate(DateTime date) {
-    if (_userId == null) return Stream.value([]);
+  Stream<List<Task>> getTasksForDate(DateTime date) async* {
+    // Check if we should use simulated data
+    if (await shouldUseSimulatedData()) {
+      // Generate simulated tasks
+      final tasks = List.generate(
+        Random().nextInt(5) + 1, // 1-5 tasks
+        (index) => Task(
+          id: 'simulated_$index',
+          name: 'Simulated Task ${index + 1}',
+          description: 'This is a simulated task for testing',
+          date: date,
+          time: TimeOfDay(
+            hour: Random().nextInt(24),
+            minute: Random().nextInt(4) * 15, // 0, 15, 30, 45
+          ),
+          isCompleted: Random().nextBool(),
+        ),
+      );
+      yield tasks;
+      return;
+    }
+
+    if (_userId == null) {
+      yield [];
+      return;
+    }
     
     // Start of the day
     DateTime startDate = DateTime(date.year, date.month, date.day);
     // End of the day
     DateTime endDate = DateTime(date.year, date.month, date.day, 23, 59, 59);
     
-    return _tasksCollection
+    yield* _tasksCollection
       .where('date', isGreaterThanOrEqualTo: startDate)
       .where('date', isLessThanOrEqualTo: endDate)
       .orderBy('date')
@@ -168,6 +195,15 @@ class TaskService {
   
   // Get task statistics with optional days parameter
   Future<Map<String, dynamic>> getTaskStatistics([int daysToCheck = 30]) async {
+    if (await shouldUseSimulatedData()) {
+      return {
+        'totalTasks': Random().nextInt(20) + 10, // 10-30 tasks
+        'completedTasks': Random().nextInt(15) + 5, // 5-20 completed
+        'tasksCompletedToday': Random().nextInt(5) + 1, // 1-5 completed today
+        'tasksDueToday': Random().nextInt(8) + 2, // 2-10 due today
+      };
+    }
+
     if (_userId == null) return {};
     
     try {
@@ -239,6 +275,10 @@ class TaskService {
   
   // Get number of completed tasks for a specific date
   Future<int> getCompletedTasksForDate(DateTime date) async {
+    if (await shouldUseSimulatedData()) {
+      return Random().nextInt(6); // 0-5 completed tasks
+    }
+
     if (_userId == null) return 0;
     
     try {
@@ -267,5 +307,10 @@ class TaskService {
       );
       return 0; // Return 0 on error
     }
+  }
+
+  Future<bool> shouldUseSimulatedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('useSimulatedData') ?? false;
   }
 }

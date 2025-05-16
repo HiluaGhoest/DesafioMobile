@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:task_manager/services/user_profile_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
+import 'package:task_manager/util/theme_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile userProfile;
@@ -191,162 +194,206 @@ class _EditProfileScreenState extends State<EditProfileScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background(context),
       appBar: AppBar(
-        title: const Text('Edit Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+        title: Text(
+          'Edit Profile',
+          style: TextStyle(
+            color: AppColors.surface(context),
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: const Color(0xFFB2D8B2), // Match the gradient's top color
+        backgroundColor: AppColors.primary(context),
+        foregroundColor: Colors.white,
       ),
-      body: Stack(
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                stops: [0.0, 0.5],
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFB2D8B2), // Slightly darker green
-                  Colors.white,
-                ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: Provider.of<ThemeProvider>(context).backgroundGradient,
+        ),
+        child: Stack(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  stops: [0.0, 0.5],
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFB2D8B2), // Slightly darker green
+                    Colors.white,
+                  ],
+                ),
               ),
             ),
-          ),
-          Positioned.fill(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_errorMessage != null)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 16.0),
-                        padding: const EdgeInsets.all(12.0),
-                        decoration: BoxDecoration(
-                            color: Color.fromRGBO(255, 0, 0, 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red),
+            Positioned.fill(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_errorMessage != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16.0),
+                          padding: const EdgeInsets.all(12.0),
+                          decoration: BoxDecoration(
+                              color: Color.fromRGBO(255, 0, 0, 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red),
+                          ),
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
-                        child: Text(
-                          _errorMessage!,
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                      
-                    // Profile Photo Section
-                    if (!widget.userProfile.isGoogleAccount)
-                      Center(
-                        child: Column(
-                          children: [
-                            Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: 60,
-                                  backgroundImage: _imageFile != null
-                                      ? FileImage(_imageFile!) as ImageProvider
-                                      : (widget.userProfile.photoUrl != null
-                                          ? widget.userProfile.photoUrl!.startsWith('file://')
-                                              ? FileImage(File(widget.userProfile.photoUrl!.replaceFirst('file://', '')))
-                                              : NetworkImage(widget.userProfile.photoUrl!)
-                                          : null),
-                                  child: (_imageFile == null && widget.userProfile.photoUrl == null)
-                                      ? const Icon(Icons.person, size: 60, color: Colors.white)
-                                      : null,
-                                ),                          Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: AnimatedBuilder(
-                                    animation: _animationController,
-                                    builder: (context, child) {
-                                      return Container(
-                                        decoration: BoxDecoration(
-                                          color: _colorAnimation.value,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(color: Colors.white, width: 2),
-                                        ),
-                                        child: IconButton(
-                                          icon: AnimatedSwitcher(
-                                            duration: const Duration(milliseconds: 300),
-                                            transitionBuilder: (Widget child, Animation<double> animation) {
-                                              return RotationTransition(
-                                                turns: animation, 
-                                                child: ScaleTransition(
-                                                  scale: animation,
-                                                  child: child,
-                                                ),
-                                              );
-                                            },
-                                            child: _showCheckIcon 
-                                              ? Icon(Icons.check, color: Colors.white, size: 20, key: ValueKey('check'))
-                                              : Icon(Icons.camera_alt, color: Colors.white, size: 20, key: ValueKey('camera')),
+                        
+                      // Profile Photo Section
+                      if (!widget.userProfile.isGoogleAccount)
+                        Center(
+                          child: Column(
+                            children: [
+                              Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 60,
+                                    backgroundImage: _imageFile != null
+                                        ? FileImage(_imageFile!) as ImageProvider
+                                        : (widget.userProfile.photoUrl != null
+                                            ? widget.userProfile.photoUrl!.startsWith('file://')
+                                                ? FileImage(File(widget.userProfile.photoUrl!.replaceFirst('file://', '')))
+                                                : NetworkImage(widget.userProfile.photoUrl!)
+                                            : null),
+                                    child: (_imageFile == null && widget.userProfile.photoUrl == null)
+                                        ? const Icon(Icons.person, size: 60, color: Colors.white)
+                                        : null,
+                                  ),                          Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: AnimatedBuilder(
+                                      animation: _animationController,
+                                      builder: (context, child) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: _colorAnimation.value,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 2),
                                           ),
-                                          onPressed: _isUploadingImage || _showCheckIcon
-                                              ? null
-                                              : () {
-                                                  _showPhotoOptions();
-                                                },
-                                        ),
-                                      );
-                                    },
+                                          child: IconButton(
+                                            icon: AnimatedSwitcher(
+                                              duration: const Duration(milliseconds: 300),
+                                              transitionBuilder: (Widget child, Animation<double> animation) {
+                                                return RotationTransition(
+                                                  turns: animation, 
+                                                  child: ScaleTransition(
+                                                    scale: animation,
+                                                    child: child,
+                                                  ),
+                                                );
+                                              },
+                                              child: _showCheckIcon 
+                                                ? Icon(Icons.check, color: Colors.white, size: 20, key: ValueKey('check'))
+                                                : Icon(Icons.camera_alt, color: Colors.white, size: 20, key: ValueKey('camera')),
+                                            ),
+                                            onPressed: _isUploadingImage || _showCheckIcon
+                                                ? null
+                                                : () {
+                                                    _showPhotoOptions();
+                                                  },
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                                if (_isUploadingImage)
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.black38,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  if (_isUploadingImage)
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.black38,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        ),
+                      
+                      // Name field
+                      Text(
+                        'Name',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter your name',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Name is required';
+                          }
+                          return null;
+                        },
+                        enabled: !widget.userProfile.isGoogleAccount, // Disable if Google account
+                      ),
+                      if (widget.userProfile.isGoogleAccount)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            'Name cannot be changed for Google accounts.',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                              fontSize: 12,
                             ),
-                            const SizedBox(height: 16),
-                            const SizedBox(height: 24),
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+                        // Username field (display only)
+                      Text(
+                        'Username',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              '@${widget.userProfile.username}',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            const Spacer(),
+                            Icon(Icons.lock_outline, size: 18, color: Colors.grey.shade600),
                           ],
                         ),
                       ),
-                    
-                    // Name field
-                    Text(
-                      'Name',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter your name',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Name is required';
-                        }
-                        return null;
-                      },
-                      enabled: !widget.userProfile.isGoogleAccount, // Disable if Google account
-                    ),
-                    if (widget.userProfile.isGoogleAccount)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
-                          'Name cannot be changed for Google accounts.',
+                          'Username cannot be changed for security reasons.',
                           style: TextStyle(
                             color: Colors.grey,
                             fontStyle: FontStyle.italic,
@@ -354,71 +401,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> with SingleTicker
                           ),
                         ),
                       ),
-                    const SizedBox(height: 24),
-                      // Username field (display only)
-                    Text(
-                      'Username',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade400),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            '@${widget.userProfile.username}',
-                            style: TextStyle(fontSize: 16),
+                      const SizedBox(height: 32),
+                      
+                      // Save button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _saveChanges,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Save Changes'),
                           ),
-                          const Spacer(),
-                          Icon(Icons.lock_outline, size: 18, color: Colors.grey.shade600),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        'Username cannot be changed for security reasons.',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 12,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    // Save button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _saveChanges,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Save Changes'),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

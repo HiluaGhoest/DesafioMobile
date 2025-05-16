@@ -1,19 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:task_manager/data_models/activity.dart';
 import 'package:task_manager/data_models/task.dart';
 import 'package:task_manager/screens/account_settings_screen.dart';
 import 'package:task_manager/screens/activities_screen.dart';
 import 'package:task_manager/screens/login_screen.dart';
+import 'package:task_manager/screens/settings_screen.dart';
 import 'package:task_manager/screens/statistics_screen.dart';
 import 'package:task_manager/services/activity_service.dart';
 import 'package:task_manager/services/task_service.dart';
 import 'package:task_manager/util/theme_provider.dart';
-import 'package:task_manager/widgets/activity_card.dart';
 import 'package:task_manager/widgets/day_selector.dart';
 import 'package:task_manager/widgets/task_card.dart';
 import 'package:task_manager/widgets/task_dialog.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 
 class MainAppPage extends StatefulWidget {
   const MainAppPage({super.key});
@@ -27,6 +29,24 @@ class _MainAppPageState extends State<MainAppPage> {
   final ActivityService _activityService = ActivityService();
   DateTime _selectedDate = DateTime.now();
   
+  @override
+  void initState() {
+    super.initState();
+    // Check authentication state after the widget is properly mounted
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthState();
+    });
+  }
+
+  void _checkAuthState() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null && mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
+  }
+
   void _showAddTaskDialog() {
     showDialog(
       context: context,
@@ -87,19 +107,11 @@ class _MainAppPageState extends State<MainAppPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get current user from Firebase
+    // Get current user from Firebase - moved outside of build method
     final user = FirebaseAuth.instance.currentUser;
     
-    // Redirect to login if user is not logged in
-    if (user == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      });
-    }
-    
     return Scaffold(
+      backgroundColor: AppColors.background(context),
       appBar: AppBar(
         title: const Text('Tasks', 
           style: TextStyle(
@@ -107,33 +119,14 @@ class _MainAppPageState extends State<MainAppPage> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: ThemeProvider.primaryButton,
+        backgroundColor: AppColors.primary(context),
+        iconTheme: const IconThemeData(color: Colors.white), // This controls the sidebar button color
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              // Task search functionality - will be implemented later
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Search functionality will be implemented soon')),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-            onPressed: () {
-              // Task filtering - will be implemented later
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Filter functionality will be implemented soon')),
-              );
-            },
-          ),
-        ],
       ),
       drawer: Drawer(
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: ThemeProvider.backgroundGradient,
+          decoration: BoxDecoration(
+            gradient: Provider.of<ThemeProvider>(context).backgroundGradient,
           ),
           child: Column(
             children: [
@@ -141,10 +134,10 @@ class _MainAppPageState extends State<MainAppPage> {
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 50, 16, 30),
                 decoration: BoxDecoration(
-                  color: ThemeProvider.primaryButton,
+                  color: AppColors.primary(context),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: AppColors.textPrimary(context).withOpacity(0.1),
                       blurRadius: 5,
                       offset: const Offset(0, 3),
                     ),
@@ -154,13 +147,13 @@ class _MainAppPageState extends State<MainAppPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.task_alt,
                       size: 40,
                       color: Colors.white,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Task Manager',
                       style: TextStyle(
                         fontSize: 24,
@@ -186,7 +179,7 @@ class _MainAppPageState extends State<MainAppPage> {
               ListTile(
                 leading: Icon(
                   Icons.calendar_today, 
-                  color: ThemeProvider.primaryButton,
+                  color: AppColors.primary(context),
                 ),
                 title: const Text(
                   'Calendar', 
@@ -203,7 +196,7 @@ class _MainAppPageState extends State<MainAppPage> {
                 ListTile(
                 leading: Icon(
                   Icons.list_alt, 
-                  color: ThemeProvider.primaryButton,
+                  color: AppColors.primary(context),
                 ),
                 title: const Text(
                   'Activities',
@@ -221,7 +214,7 @@ class _MainAppPageState extends State<MainAppPage> {
                 ListTile(
                 leading: Icon(
                   Icons.bar_chart, 
-                  color: ThemeProvider.primaryButton,
+                  color: AppColors.primary(context),
                 ),
                 title: const Text(
                   'Statistics',
@@ -240,7 +233,7 @@ class _MainAppPageState extends State<MainAppPage> {
               ListTile(
                 leading: Icon(
                   Icons.settings,
-                  color: ThemeProvider.primaryButton,
+                  color: AppColors.primary(context),
                 ),
                 title: const Text(
                   'Settings',
@@ -249,8 +242,9 @@ class _MainAppPageState extends State<MainAppPage> {
                 onTap: () {
                   Navigator.pop(context); // Close the drawer
                   // Navigate to settings screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Settings screen will be implemented soon')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
                   );
                 },
               ),
@@ -311,7 +305,7 @@ class _MainAppPageState extends State<MainAppPage> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: ThemeProvider.primaryButton,
+                              color: AppColors.primary(context),
                               width: 2,
                             ),
                           ),
@@ -327,7 +321,7 @@ class _MainAppPageState extends State<MainAppPage> {
                                         ? user!.displayName![0] 
                                         : 'U'),
                                     style: TextStyle(
-                                      color: ThemeProvider.primaryButton,
+                                      color: AppColors.primary(context),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   )
@@ -359,7 +353,7 @@ class _MainAppPageState extends State<MainAppPage> {
                         ),
                         Icon(
                           Icons.chevron_right,
-                          color: ThemeProvider.primaryButton,
+                          color: AppColors.surface(context),
                         ),
                       ],
                     ),
@@ -371,8 +365,8 @@ class _MainAppPageState extends State<MainAppPage> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: ThemeProvider.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: Provider.of<ThemeProvider>(context).backgroundGradient,
         ),
         child: SafeArea(
           child: Column(
@@ -388,7 +382,7 @@ class _MainAppPageState extends State<MainAppPage> {
                       children: [
                         Icon(
                           Icons.waving_hand,
-                          color: ThemeProvider.primaryButton,
+                          color: AppColors.primary(context),
                           size: 24,
                         ),
                         const SizedBox(width: 8),
@@ -406,8 +400,7 @@ class _MainAppPageState extends State<MainAppPage> {
                       child: Text(
                         'Here are your tasks and activities for today',
                         style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
+                          fontSize: 16,                          color: Colors.grey[600],
                         ),
                       ),
                     ),
@@ -485,7 +478,7 @@ class _MainAppPageState extends State<MainAppPage> {
                                 );
                               },
                               style: TextButton.styleFrom(
-                                foregroundColor: ThemeProvider.primaryButton,
+                                foregroundColor: AppColors.primary(context),
                               ),
                               child: const Text('See All'),
                             ),
@@ -525,11 +518,11 @@ class _MainAppPageState extends State<MainAppPage> {
                                   ),
                                 ],
                                 color: completedToday
-                                    ? ThemeProvider.primaryButton.withOpacity(0.1)
+                                    ? AppColors.primary(context).withOpacity(0.1)
                                     : Colors.white,
                                 border: completedToday
                                     ? Border.all(
-                                        color: ThemeProvider.primaryButton.withOpacity(0.5),
+                                        color: AppColors.primary(context).withOpacity(0.5),
                                         width: 1,
                                       )
                                     : null,
@@ -591,7 +584,7 @@ class _MainAppPageState extends State<MainAppPage> {
                                             icon: const Icon(Icons.check, size: 16),
                                             label: const Text('Complete'),
                                             style: TextButton.styleFrom(
-                                              foregroundColor: ThemeProvider.primaryButton,
+                                              foregroundColor: AppColors.primary(context),
                                               padding: const EdgeInsets.symmetric(horizontal: 8),
                                               minimumSize: const Size(0, 28),
                                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -684,7 +677,7 @@ class _MainAppPageState extends State<MainAppPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(ThemeProvider.primaryButton),
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary(context)),
                               strokeWidth: 3,
                             ),
                             const SizedBox(height: 16),
@@ -752,7 +745,7 @@ class _MainAppPageState extends State<MainAppPage> {
                                 icon: const Icon(Icons.refresh),
                                 label: const Text('Try Again'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: ThemeProvider.primaryButton,
+                                  backgroundColor: AppColors.primary(context),
                                   foregroundColor: Colors.white,
                                 ),
                               ),
@@ -795,14 +788,14 @@ class _MainAppPageState extends State<MainAppPage> {
                                     width: 90,
                                     height: 90,
                                     decoration: BoxDecoration(
-                                      color: ThemeProvider.primaryButton.withOpacity(0.15),
+                                      color: AppColors.primary(context).withOpacity(0.15),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
                                   Icon(
                                     isToday ? Icons.today : Icons.event_available,
                                     size: 60,
-                                    color: ThemeProvider.primaryButton,
+                                    color: AppColors.primary(context),
                                   ),
                                 ],
                               ),
@@ -832,7 +825,7 @@ class _MainAppPageState extends State<MainAppPage> {
                                 icon: const Icon(Icons.add),
                                 label: Text(isToday ? 'Add a task for today' : 'Schedule a task'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: ThemeProvider.primaryButton,
+                                  backgroundColor: AppColors.primary(context),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                                   shape: RoundedRectangleBorder(
@@ -906,12 +899,12 @@ class _MainAppPageState extends State<MainAppPage> {
                               width: 60,
                               height: 60,
                               decoration: BoxDecoration(
-                                color: ThemeProvider.primaryButton.withOpacity(0.1),
+                                color: AppColors.primary(context).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Icon(
                                 Icons.task_alt,
-                                color: ThemeProvider.primaryButton,
+                                color: AppColors.primary(context),
                                 size: 30,
                               ),
                             ),
@@ -939,12 +932,12 @@ class _MainAppPageState extends State<MainAppPage> {
                               width: 60,
                               height: 60,
                               decoration: BoxDecoration(
-                                color: ThemeProvider.primaryButton.withOpacity(0.1),
+                                color: AppColors.primary(context).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Icon(
                                 Icons.repeat,
-                                color: ThemeProvider.primaryButton,
+                                color: AppColors.primary(context),
                                 size: 30,
                               ),
                             ),
@@ -961,7 +954,7 @@ class _MainAppPageState extends State<MainAppPage> {
             ),
           );
         },
-        backgroundColor: ThemeProvider.primaryButton,
+        backgroundColor: AppColors.primary(context),
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Create'),
       ),

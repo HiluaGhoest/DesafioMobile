@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:task_manager/data_models/task.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager/util/theme_provider.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -27,7 +28,7 @@ class TaskCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(task.isCompleted ? 0.03 : 0.1),
+            color: AppColors.textPrimary(context).withOpacity(task.isCompleted ? 0.03 : 0.1),
             blurRadius: task.isCompleted ? 3 : 5,
             offset: Offset(0, task.isCompleted ? 1 : 2),
           ),
@@ -39,12 +40,12 @@ class TaskCard extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: task.isCompleted 
-            ? BorderSide(color: ThemeProvider.primaryButton.withOpacity(0.5), width: 1)
+            ? BorderSide(color: AppColors.primary(context).withOpacity(0.5), width: 1)
             : BorderSide.none,
         ),
         color: task.isCompleted 
-            ? ThemeProvider.primaryButton.withOpacity(0.1)
-            : Colors.white,
+            ? AppColors.primary(context).withOpacity(0.1)
+            : AppColors.surface(context),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -61,8 +62,8 @@ class TaskCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: task.isCompleted 
-                          ? Colors.green
-                          : ThemeProvider.primaryButton,
+                          ? AppColors.success(context)
+                          : AppColors.primary(context),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -80,7 +81,7 @@ class TaskCard extends StatelessWidget {
                             decoration: task.isCompleted
                                 ? TextDecoration.lineThrough
                                 : null,
-                            color: task.isCompleted ? Colors.grey : Colors.black87,
+                            color: task.isCompleted ? AppColors.textSecondary(context) : AppColors.textPrimary(context),
                           ),
                         ),
                         if (task.description != null && task.description!.isNotEmpty)
@@ -90,7 +91,7 @@ class TaskCard extends StatelessWidget {
                               task.description!,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: task.isCompleted ? Colors.grey : Colors.black54,
+                                color: task.isCompleted ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.7),
                               ),
                             ),
                           ),
@@ -100,28 +101,28 @@ class TaskCard extends StatelessWidget {
                             Icon(
                               Icons.access_time,
                               size: 16,
-                              color: task.isCompleted ? Colors.grey : Colors.black54,
+                              color: task.isCompleted ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                             ),
                             const SizedBox(width: 4),
                             Text(
                               task.time.format(context),
                               style: TextStyle(
                                 fontSize: 13,
-                                color: task.isCompleted ? Colors.grey : Colors.black54,
+                                color: task.isCompleted ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                               ),
                             ),
                             const SizedBox(width: 16),
                             Icon(
                               Icons.calendar_today,
                               size: 16,
-                              color: task.isCompleted ? Colors.grey : Colors.black54,
+                              color: task.isCompleted ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                             ),
                             const SizedBox(width: 4),
                             Text(
                               DateFormat('MMM d, yyyy').format(task.date),
                               style: TextStyle(
                                 fontSize: 13,
-                                color: task.isCompleted ? Colors.grey : Colors.black54,
+                                color: task.isCompleted ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                               ),
                             ),
                           ],
@@ -134,7 +135,7 @@ class TaskCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: task.isCompleted ? Colors.grey : Colors.black54,
+                      color: task.isCompleted ? AppColors.textSecondary(context) : AppColors.textPrimary(context).withOpacity(0.6),
                     ),
                     onSelected: (value) {
                       if (value == 'edit') {
@@ -163,19 +164,27 @@ class TaskCard extends StatelessWidget {
                             Icon(
                               task.isCompleted ? Icons.restart_alt : Icons.check_circle_outline,
                               size: 18,
+                              color: task.isCompleted ? AppColors.success(context) : AppColors.textPrimary(context),
                             ),
                             const SizedBox(width: 8),
                             Text(task.isCompleted ? 'Mark Incomplete' : 'Mark Complete'),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 18, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('Delete', style: TextStyle(color: Colors.red)),
+                            Icon(
+                              Icons.delete,
+                              size: 18,
+                              color: AppColors.error(context),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Delete',
+                              style: TextStyle(color: AppColors.error(context)),
+                            ),
                           ],
                         ),
                       ),
@@ -196,7 +205,7 @@ class TaskCard extends StatelessWidget {
                         icon: const Icon(Icons.check, size: 18),
                         label: const Text('Mark Complete'),
                         style: TextButton.styleFrom(
-                          foregroundColor: ThemeProvider.primaryButton,
+                          foregroundColor: AppColors.primary(context),
                         ),
                       ),
                     ],
@@ -213,14 +222,14 @@ class TaskCard extends StatelessWidget {
                       Icon(
                         Icons.check_circle,
                         size: 16,
-                        color: Colors.green,
+                        color: AppColors.success(context),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Completed',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.green,
+                          color: AppColors.success(context),
                           fontStyle: FontStyle.italic,
                         ),
                       ),

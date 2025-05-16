@@ -3,7 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager/services/activity_service.dart';
 import 'package:task_manager/services/task_service.dart';
-import 'package:task_manager/util/theme_provider.dart';
+import 'package:task_manager/util/colors/app_colors.dart';
+import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({Key? key}) : super(key: key);
@@ -42,30 +44,103 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     });
     
     try {
-      // Load activity statistics
-      final activityStats = await _activityService.getActivityStatistics();
-      
-      // Load task statistics
-      final taskStats = await _taskService.getTaskStatistics();
-      
-      // Generate weekly completion data
-      final weeklyData = await _generateWeeklyCompletionData();
-      
-      // Generate monthly completion data
-      final monthlyData = await _generateMonthlyCompletionData();
-      
-      // Calculate combined statistics
-      final combinedStats = _calculateCombinedStatistics(taskStats, activityStats);
-      
-      // Update state with all statistics
-      setState(() {
-        _activityStatistics = activityStats;
-        _taskStatistics = taskStats;
-        _combinedStatistics = combinedStats;
-        _weeklyCompletion = weeklyData;
-        _monthlyCompletion = monthlyData;
-        _isLoading = false;
-      });
+      final prefs = await SharedPreferences.getInstance();
+      final useSimulatedData = prefs.getBool('useSimulatedData') ?? false;
+
+      if (useSimulatedData) {
+        // Simulate activity statistics
+        final activityStats = {
+          'totalActivities': 15,
+          'activeActivities': 8,
+          'totalCompletions': 45,
+          'activitiesCompletedToday': 3,
+          'activitiesDueToday': 5,
+        };
+        
+        // Simulate task statistics
+        final taskStats = {
+          'totalTasks': 20,
+          'completedTasks': 12,
+          'tasksCompletedToday': 4,
+          'tasksDueToday': 6,
+        };
+        
+        // Simulate weekly completion data
+        final now = DateTime.now();
+        final weeklyData = List.generate(7, (index) {
+          final date = now.subtract(Duration(days: 6 - index));
+          return {
+            'date': date,
+            'dayName': DateFormat('E').format(date),
+            'formattedDate': DateFormat('yyyy-MM-dd').format(date),
+            'taskCompletions': Random().nextInt(8), // Random number of task completions (0-7)
+            'activityCompletions': Random().nextInt(6), // Random number of activity completions (0-5)
+            'totalCompletions': Random().nextInt(10) + 2, // Random total (2-11)
+          };
+        });
+        
+        // Simulate monthly completion data
+        final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+        final monthlyData = List.generate(daysInMonth, (index) {
+          final date = DateTime(now.year, now.month, index + 1);
+          // Don't generate data for future dates
+          if (date.isAfter(now)) {
+            return {
+              'date': date,
+              'dayNumber': date.day,
+              'formattedDate': DateFormat('yyyy-MM-dd').format(date),
+              'taskCompletions': 0,
+              'activityCompletions': 0,
+              'totalCompletions': 0,
+            };
+          }
+          
+          return {
+            'date': date,
+            'dayNumber': date.day,
+            'formattedDate': DateFormat('yyyy-MM-dd').format(date),
+            'taskCompletions': Random().nextInt(6), // Random number of task completions (0-5)
+            'activityCompletions': Random().nextInt(5), // Random number of activity completions (0-4)
+          };
+        }).map((day) {
+          return {
+            ...day,
+            'totalCompletions': (day['taskCompletions'] as int) + (day['activityCompletions'] as int),
+          };
+        }).toList();
+
+        // Calculate combined statistics
+        final combinedStats = _calculateCombinedStatistics(taskStats, activityStats);
+        
+        setState(() {
+          _activityStatistics = activityStats;
+          _taskStatistics = taskStats;
+          _combinedStatistics = combinedStats;
+          _weeklyCompletion = weeklyData;
+          _monthlyCompletion = monthlyData;
+          _isLoading = false;
+        });
+      } else {
+        // Use real data
+        final weeklyData = await _generateWeeklyCompletionData();
+        final monthlyData = await _generateMonthlyCompletionData();
+        
+        // Get real statistics from services
+        final taskStats = await _taskService.getTaskStatistics();
+        final activityStats = await _activityService.getActivityStatistics();
+        
+        // Calculate combined statistics
+        final combinedStats = _calculateCombinedStatistics(taskStats, activityStats);
+        
+        setState(() {
+          _activityStatistics = activityStats;
+          _taskStatistics = taskStats;
+          _combinedStatistics = combinedStats;
+          _weeklyCompletion = weeklyData;
+          _monthlyCompletion = monthlyData;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -173,6 +248,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background(context),
       appBar: AppBar(
         title: const Text(
           'Statistics',
@@ -181,7 +257,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: ThemeProvider.primaryButton,
+        backgroundColor: AppColors.primary(context),
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: TabBar(
@@ -218,22 +294,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Today\'s Progress',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 16),
             _buildCompletionRateCard(),
             const SizedBox(height: 24),
             
-            const Text(
+            Text(
               'Tasks & Activities',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -241,9 +319,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             // Comparison chart: Tasks vs Activities
             Container(
               height: 240,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface(context),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -256,38 +334,31 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'Tasks vs. Activities',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
                   Expanded(
                     child: PieChart(
                       PieChartData(
-                        sectionsSpace: 2,
+                        sectionsSpace: 5,
                         centerSpaceRadius: 40,
                         sections: [
-                          PieChartSectionData(
+                            PieChartSectionData(
                             value: _taskStatistics['totalTasks']?.toDouble() ?? 0,
                             title: 'Tasks',
                             color: Colors.blue,
-                            radius: 80,
-                            titleStyle: const TextStyle(
-                              color: Colors.white,
+                            radius: 60,
+                            titleStyle: TextStyle(
+                              color: AppColors.textPrimary(context),
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
-                          ),
+                            ),
                           PieChartSectionData(
                             value: _activityStatistics['totalActivities']?.toDouble() ?? 0,
                             title: 'Activities',
-                            color: ThemeProvider.primaryButton,
-                            radius: 80,
-                            titleStyle: const TextStyle(
-                              color: Colors.white,
+                            color: AppColors.primary(context),
+                            radius: 60,
+                            titleStyle: TextStyle(
+                              color: AppColors.surface(context),
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -298,7 +369,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildLegendItem(
                         color: Colors.blue,
@@ -307,7 +378,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                       ),
                       const SizedBox(width: 24),
                       _buildLegendItem(
-                        color: ThemeProvider.primaryButton,
+                        color: AppColors.primary(context),
                         label: 'Activities',
                         value: '${_activityStatistics['totalActivities'] ?? 0}',
                       ),
@@ -350,7 +421,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
 
   Widget _buildWeeklyTab() {
     if (_weeklyCompletion.isEmpty) {
-      return const Center(child: Text('No data available for the past week'));
+      return Center(
+        child: Text(
+          'No data available for the past week',
+          style: TextStyle(color: AppColors.textSecondary(context)),
+        ),
+      );
     }
     
     final maxCompletions = _weeklyCompletion
@@ -365,11 +441,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Weekly Completion Overview',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -379,7 +456,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               height: 300,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface(context),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -416,7 +493,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                             TextSpan(
                               text: 'Activities: ${day['activityCompletions']}\n',
                               style: TextStyle(
-                                color: ThemeProvider.primaryButton,
+                                color: AppColors.primary(context),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -447,9 +524,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
                               _weeklyCompletion[value.toInt()]['dayName'],
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.black54,
+                                color: AppColors.textSecondary(context),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -465,8 +542,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                           if (value % 1 != 0) return const SizedBox.shrink();
                           return Text(
                             value.toInt().toString(),
-                            style: const TextStyle(
-                              color: Colors.black54,
+                            style: TextStyle(
+                              color: AppColors.textSecondary(context),
                               fontSize: 12,
                             ),
                           );
@@ -516,7 +593,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                               BarChartRodStackItem(
                                 day['taskCompletions'].toDouble(),
                                 day['totalCompletions'].toDouble(),
-                                ThemeProvider.primaryButton,
+                                AppColors.primary(context),
                               ),
                             ],
                           ),
@@ -540,7 +617,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                 ),
                 const SizedBox(width: 24),
                 _buildLegendItem(
-                  color: ThemeProvider.primaryButton,
+                  color: AppColors.primary(context),
                   label: 'Activities',
                 ),
               ],
@@ -549,11 +626,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             const SizedBox(height: 32),
             
             // Weekly completion heatmap
-            const Text(
+            Text(
               'Completion Timeline',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -579,9 +657,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           children: [
             Text(
               '${DateFormat('MMMM yyyy').format(DateTime.now())} Overview',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -591,11 +670,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             
             const SizedBox(height: 24),
             
-            const Text(
+            Text(
               'Monthly Completion Timeline',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -606,11 +686,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             const SizedBox(height: 24),
             
             // Monthly trend line chart
-            const Text(
+            Text(
               'Monthly Trend',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -644,23 +725,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Today\'s Completion',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary(context),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: ThemeProvider.primaryButton.withOpacity(0.1),
+                    color: AppColors.primary(context).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     '$completionPercentage%',
                     style: TextStyle(
-                      color: ThemeProvider.primaryButton,
+                      color: AppColors.primary(context),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -674,7 +756,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               child: LinearProgressIndicator(
                 value: completionRate,
                 backgroundColor: Colors.grey[200],
-                color: ThemeProvider.primaryButton,
+                color: AppColors.primary(context),
                 minHeight: 20,
               ),
             ),
@@ -684,14 +766,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               children: [
                 Text(
                   'Done: $itemsCompletedToday',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary(context),
                   ),
                 ),
                 Text(
                   'Total: $itemsDueToday',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary(context),
                   ),
                 ),
               ],
@@ -704,15 +788,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                     children: [
                       CircularProgressIndicator(
                         value: taskCompletionRate,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: AppColors.surface(context).withOpacity(0.2),
                         color: Colors.blue,
                         strokeWidth: 8,
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Tasks',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       Text(
@@ -729,21 +814,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                     children: [
                       CircularProgressIndicator(
                         value: activityCompletionRate,
-                        backgroundColor: Colors.grey[200],
-                        color: ThemeProvider.primaryButton,
+                        backgroundColor: AppColors.surface(context).withOpacity(0.2),
+                        color: AppColors.primary(context),
                         strokeWidth: 8,
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Activities',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary(context),
                         ),
                       ),
                       Text(
                         '${(activityCompletionRate * 100).toStringAsFixed(0)}%',
                         style: TextStyle(
-                          color: ThemeProvider.primaryButton,
+                          color: AppColors.primary(context),
                         ),
                       ),
                     ],
@@ -789,7 +875,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             icon: Icons.loop,
             title: 'Total',
             value: '${_activityStatistics['totalActivities'] ?? 0}',
-            color: ThemeProvider.primaryButton,
+            color: AppColors.primary(context),
           ),
         ),
         const SizedBox(width: 12),
@@ -837,16 +923,17 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.grey[700],
+                      color: AppColors.textSecondary(context),
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary(context),
                     ),
                   ),
                 ],
@@ -862,7 +949,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -896,10 +983,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
               _buildLegendItem(
                 color: Colors.blue,
                 label: 'Tasks',
+                
               ),
               const SizedBox(width: 24),
               _buildLegendItem(
-                color: ThemeProvider.primaryButton,
+                color: AppColors.primary(context),
                 label: 'Activities',
               ),
             ],
@@ -929,10 +1017,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           width: 40,
           height: 150,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: AppColors.surface(context).withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
             border: isToday
-                ? Border.all(color: ThemeProvider.primaryButton, width: 2)
+                ? Border.all(color: AppColors.primary(context), width: 2)
                 : null,
           ),
           child: Column(
@@ -943,7 +1031,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                   width: 40,
                   height: activityHeight,
                   decoration: BoxDecoration(
-                    color: ThemeProvider.primaryButton,
+                    color: AppColors.primary(context),
                     borderRadius: taskHeight > 0
                         ? const BorderRadius.only(
                             topLeft: Radius.circular(4),
@@ -960,7 +1048,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                   width: 40,
                   height: taskHeight,
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: AppColors.secondary(context),
                     borderRadius: const BorderRadius.vertical(
                       bottom: Radius.circular(8),
                     ),
@@ -986,7 +1074,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           style: TextStyle(
             fontSize: 12,
             fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-            color: isToday ? ThemeProvider.primaryButton : Colors.black54,
+            color: isToday ? AppColors.primary(context) : AppColors.textSecondary(context),
           ),
         ),
         Text(
@@ -995,8 +1083,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: hasCompletions
-                ? (isToday ? ThemeProvider.primaryButton : Colors.black87)
-                : Colors.grey,
+                ? (isToday ? AppColors.primary(context) : AppColors.textPrimary(context))
+                : AppColors.textSecondary(context),
           ),
         ),
       ],
@@ -1030,11 +1118,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Month Summary',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 20),
@@ -1051,11 +1140,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                           color: Colors.blue,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Tasks Completed',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
+                          color: AppColors.textSecondary(context),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -1070,14 +1159,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: ThemeProvider.primaryButton,
+                          color: AppColors.primary(context),
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Activity Completions',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
+                          color: AppColors.textSecondary(context),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -1102,9 +1191,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                       ),
                       Text(
                         'Active Days / $totalDaysTracked',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
+                          color: AppColors.textSecondary(context),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -1122,11 +1211,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                           color: Colors.orange,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Completion Rate',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
+                          color: AppColors.textSecondary(context),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -1189,7 +1278,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1205,14 +1294,14 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           // Day headers (M-S)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              Text('M', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('T', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('W', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('T', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('F', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('S', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('S', style: TextStyle(fontWeight: FontWeight.bold)),
+            children: [
+              Text('M', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(context))),
+              Text('T', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(context))),
+              Text('W', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(context))),
+              Text('T', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(context))),
+              Text('F', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(context))),
+              Text('S', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(context))),
+              Text('S', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary(context))),
             ],
           ),
           const SizedBox(height: 8),
@@ -1243,15 +1332,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                     // Calculate intensity based on completion count
                     Color color;
                     if (totalCount == 0) {
-                      color = Colors.grey[200]!;
+                      color = AppColors.surface(context).withOpacity(0.1);
                     } else if (totalCount <= 2) {
-                      color = Colors.lightGreen[200]!;
+                      color = AppColors.success(context).withOpacity(0.3);
                     } else if (totalCount <= 5) {
-                      color = Colors.lightGreen[400]!;
+                      color = AppColors.success(context).withOpacity(0.5);
                     } else if (totalCount <= 8) {
-                      color = Colors.lightGreen[600]!;
+                      color = AppColors.success(context).withOpacity(0.7);
                     } else {
-                      color = Colors.lightGreen[800]!;
+                      color = AppColors.success(context);
                     }
                     
                     return Container(
@@ -1261,8 +1350,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                         color: color,
                         borderRadius: BorderRadius.circular(8),
                         border: isToday
-                            ? Border.all(color: ThemeProvider.primaryButton, width: 2)
-                            : null,
+                            ? Border.all(color: AppColors.primary(context), width: 2)
+                            : totalCount == 0
+                                ? Border.all(color: AppColors.textSecondary(context).withOpacity(0.3), width: 1)
+                                : null,
                       ),
                       child: Tooltip(
                         message: 'Tasks: $taskCount\nActivities: $activityCount\nTotal: $totalCount',
@@ -1271,7 +1362,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                             '$dayNumber',
                             style: TextStyle(
                               fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                              color: totalCount >= 5 ? Colors.white : Colors.black87,
+                              color: totalCount >= 5 ? Colors.white : AppColors.textPrimary(context),
                             ),
                           ),
                         ),
@@ -1287,15 +1378,15 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildColorLegendItem(color: Colors.grey[200]!, label: 'No completions'),
+              _buildColorLegendItem(color: AppColors.surface(context).withOpacity(0.1), label: 'No completions'),
               const SizedBox(width: 8),
-              _buildColorLegendItem(color: Colors.lightGreen[200]!, label: '1-2'),
+              _buildColorLegendItem(color: AppColors.success(context).withOpacity(0.3), label: '1-2'),
               const SizedBox(width: 8),
-              _buildColorLegendItem(color: Colors.lightGreen[400]!, label: '3-5'),
+              _buildColorLegendItem(color: AppColors.success(context).withOpacity(0.5), label: '3-5'),
               const SizedBox(width: 8),
-              _buildColorLegendItem(color: Colors.lightGreen[600]!, label: '6-8'),
+              _buildColorLegendItem(color: AppColors.success(context).withOpacity(0.7), label: '6-8'),
               const SizedBox(width: 8),
-              _buildColorLegendItem(color: Colors.lightGreen[800]!, label: '9+'),
+              _buildColorLegendItem(color: AppColors.success(context), label: '9+'),
             ],
           ),
         ],
@@ -1354,8 +1445,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     final maxCompletion = weeklyTotals.fold<int>(
       0,
       (max, data) {
-        final totalCompletions = data['totalCompletions'];
-        final total = (totalCompletions is int) ? totalCompletions : (totalCompletions ?? 0) as int;
+        final total = data['totalCompletions'] ?? 0;
         return total > max ? total : max;
       },
     ).toDouble();
@@ -1364,7 +1454,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
       height: 300,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface(context),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1376,7 +1466,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         ],
       ),
       child: weeklyTotals.length < 2
-          ? const Center(child: Text('Not enough data for trend analysis'))
+          ? Center(
+              child: Text(
+                'Not enough data for trend analysis',
+                style: TextStyle(color: AppColors.textSecondary(context)),
+              ),
+            )
           : LineChart(
               LineChartData(
                 gridData: FlGridData(
@@ -1399,24 +1494,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                   show: true,
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        if (value < 0 || value >= weeklyTotals.length) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            'Week ${weeklyTotals[value.toInt()]['week']}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      },
-                      reservedSize: 30,
+                      showTitles: false, // Hide bottom titles completely
+                      reservedSize: 0,
                     ),
                   ),
                   leftTitles: AxisTitles(
@@ -1426,8 +1505,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                         if (value % 2 != 0) return const SizedBox.shrink();
                         return Text(
                           value.toInt().toString(),
-                          style: const TextStyle(
-                            color: Colors.black54,
+                          style: TextStyle(
+                            color: AppColors.textSecondary(context),
                             fontSize: 12,
                           ),
                         );
@@ -1456,25 +1535,25 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                         
                         if (barSpot.barIndex == 0) { // Tasks
                           return LineTooltipItem(
-                            'Tasks: ${data['taskCompletions']}',
-                            const TextStyle(
-                              color: Colors.blue,
+                            'Tasks: ${data["taskCompletions"]}',
+                            TextStyle(
+                              color: AppColors.textPrimary(context),
                               fontWeight: FontWeight.bold,
                             ),
                           );
                         } else if (barSpot.barIndex == 1) { // Activities
                           return LineTooltipItem(
-                            'Activities: ${data['activityCompletions']}',
+                            'Activities: ${data["activityCompletions"]}',
                             TextStyle(
-                              color: ThemeProvider.primaryButton,
+                              color: AppColors.textPrimary(context),
                               fontWeight: FontWeight.bold,
                             ),
                           );
                         } else { // Total
                           return LineTooltipItem(
-                            'Total: ${data['totalCompletions']}',
-                            const TextStyle(
-                              color: Colors.orange,
+                            'Total: ${data["totalCompletions"]}',
+                            TextStyle(
+                              color: AppColors.textPrimary(context),
                               fontWeight: FontWeight.bold,
                             ),
                           );
@@ -1509,7 +1588,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
                       );
                     }),
                     isCurved: true,
-                    color: ThemeProvider.primaryButton,
+                    color: Colors.green,
                     barWidth: 3,
                     isStrokeCapRound: true,
                     dotData: FlDotData(show: true),
@@ -1558,9 +1637,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
         const SizedBox(width: 6),
         Text(
           value != null ? '$label: $value' : label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.black54,
+            color: AppColors.textPrimary(context),
           ),
         ),
       ],
@@ -1581,12 +1660,12 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox (width: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
-            color: Colors.black54,
+            color: AppColors.textSecondary(context),
           ),
         ),
       ],
